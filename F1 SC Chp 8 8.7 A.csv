@@ -1,0 +1,7 @@
+﻿title,type,question,A,B,C,D,E,F,G,answer,image
+8.7 Addition of Light,checkbox,Primary colour / Warnar primer,Red / Merah,Green / Hijau,Blue / Biru,Yellow / Kuning,Magenta,Cyan / Sian,,"A,B,C",
+,checkbox,Secondary colour / Warnar sekunder,Red / Merah,Green / Hijau,Blue / Biru,Yellow / Kuning,Magenta,Cyan / Sian,,"D,E,F",
+,radio,Red + Blue / Merah + Biru,Yellow / Kuning,Magenta,Cyan / Sian,White / Putih,,,,B,
+,radio,Red + Green / Merah + Hijau,Yellow / Kuning,Magenta,Cyan / Sian,White / Putih,,,,A,
+,radio,Blue + Green / Biru + Hijau,Yellow / Kuning,Magenta,Cyan / Sian,White / Putih,,,,C,
+,radio,Red + Blue + Green / Merah + Biru + Hijau,Yellow / Kuning,Magenta,Cyan / Sian,White / Putih,,,,D,
