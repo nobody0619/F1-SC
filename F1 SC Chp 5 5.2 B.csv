@@ -1,0 +1,9 @@
+﻿title,type,question,A,B,C,D,E,F,answer,image
+The effect of heat on matter,radio,Solid → Liquid / Pepejal → Cecair,Melting / Peleburan,Boiling / Pendidihan,Evaporation / Penyejatan,Freezing / Pembekuan,Condensation / Kondensasi,Sublimation / Pemejalwapan,A,
+,radio,Solid → Gas / Pepejal → Gas,,,,,,,F,
+,radio,Liquid → Solid / Cecair → Pepejal,,,,,,,D,
+,checkbox,Liquid → Gas / Cecair → Gas,,,,,,,"B,C",
+,radio,Gas → Liquid / Gas → Cecair,,,,,,,E,
+,radio,Gas → Solid / Gas → Pepejal,,,,,,,F,
+,radio,Heat is absorbed / Haba diserap,,,,,,,"A,B,C,F",
+,radio,Heat is released / Haba dibebaskan,,,,,,,"D,E,F",

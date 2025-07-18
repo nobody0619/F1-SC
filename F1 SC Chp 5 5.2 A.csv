@@ -1,0 +1,10 @@
+﻿title,type,question,A,B,C,D,E,F,G,H,answer,image
+Three States of Matter,radio,Fixed shape,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,A,
+,checkbox,Takes the shape of the container / Mengikut bentuk bekas yang diisi,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,"B,C",
+,checkbox,Fixed mass / Jisim tetap,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,"A,B",
+,radio,No fixed mass / Tiada jisim tetap,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,C,
+,checkbox,Fixed volume / Isi padu tetap,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,"A,B",
+,radio,Follows the volume of the container / Mengikut isi padu bekas,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,C,
+,radio,Incompressible / Tidak boleh dimampatkan,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,A,
+,radio,Difficult to compress / Sukar dimampatkan,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,B,
+,radio,Compressible / Boleh dimampatkan,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,C,
