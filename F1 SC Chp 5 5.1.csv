@@ -1,0 +1,19 @@
+﻿title,type,question,A,B,C,D,E,F,G,H,answer,image
+Matter in Nature,checkbox,Matter / Jirim 的特点,Has mass / Mempunyai jisim,Occupies space / Memenuhi ruang,Produces light / Menghasilkan cahaya,Can move freely / Boleh bergerak bebas,Has temperature / Mempunyai suhu,Has weight / Mempunyai berat,,,"A,B",
+,checkbox,哪些是 non-matter / bukan jirim?,Water / Air,Air / Udara,Stone / Batu,Heat / Haba,Sound / Suara,Light / Cahaya,,,"D,E,F",
+,checkbox,哪些是 physical properties / sifat fizik,boiling point / takat didih,dissolve in water / melarut dalam air,heat insulator / penebat haba,heat conductor / konduktor haba,melting point / takat lebur,rusting / pengaratan,flammable / mudah terbakar,,"A,B,C,D,E",
+,checkbox,哪些是 chemical properties / sifat kimia,boiling point / takat didih,dissolve in water / melarut dalam air,heat insulator / penebat haba,heat conductor / konduktor haba,melting point / takat lebur,rusting / pengaratan,flammable / mudah terbakar,,"F,G",
+,radio,density / ketumpatan 高,float / terapung,sink / tenggelam,,,,,,,B,
+,radio,density / ketumpatan 低,float / terapung,sink / tenggelam,,,,,,,A,
+,radio,-10°C 的 water / air 是,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,A,5.1.png
+,radio,25°C 的 water / air 是,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,B,5.1.png
+,radio,125°C 的 Water / Air 是,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,C,5.1.png
+,radio,90°C 的 Alcohol / Alkohol 是,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,C,5.1.png
+,radio,-100°C 的 Alcohol / Alkohol 是,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,B,5.1.png
+,radio,-200°C 的 Alcohol / Alkohol 是,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,A,5.1.png
+,radio,1000°C 的 Copper / Kuprum 是,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,A,5.1.png
+,radio,2400°C 的 Copper / Kuprum 是,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,B,5.1.png
+,radio,2652°C 的 Copper / Kuprum 是,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,C,5.1.png
+,radio,-180°C 的 Oxygen / Oksigen 是,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,C,5.1.png
+,radio,-185°C 的 Oxygen / Oksigen 是,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,B,5.1.png
+,radio,-220°C 的 Oxygen / Oksigen 是,Solid / Pepejal,Liquid / Cecair,Gas,,,,,,A,5.1.png
