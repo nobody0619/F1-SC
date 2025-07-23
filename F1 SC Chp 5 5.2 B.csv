@@ -7,3 +7,5 @@ The effect of heat on matter,radio,Solid → Liquid / Pepejal → Cecair,Melting
 ,radio,Gas → Solid / Gas → Pepejal,Melting / Peleburan,Boiling / Pendidihan,Evaporation / Penyejatan,Freezing / Pembekuan,Condensation / Kondensasi,Sublimation / Pemejalwapan,F,
 ,checkbox,Heat is absorbed / Haba diserap,Melting / Peleburan,Boiling / Pendidihan,Evaporation / Penyejatan,Freezing / Pembekuan,Condensation / Kondensasi,Sublimation / Pemejalwapan,"A,B,C,F",
 ,checkbox,Heat is released / Haba dibebaskan,Melting / Peleburan,Boiling / Pendidihan,Evaporation / Penyejatan,Freezing / Pembekuan,Condensation / Kondensasi,Sublimation / Pemejalwapan,"D,E,F",
+,radio,Rate of diffusion / Kadar resapan 最高的是,Solid / Pepejal,Liquid / Cecair,Gas,,,,C,
+,radio,Rate of diffusion / Kadar resapan 最低的是,Solid / Pepejal,Liquid / Cecair,Gas,,,,A,
