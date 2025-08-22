@@ -1,0 +1,5 @@
+﻿title,type,question,A,B,C,D,E,F,answer,image
+Combustion,checkbox,Combustion / Pembakaran 需要,Oxygen / Oksigen,Carbon dioxide / Karbon dioksida,Fuel / Bahan api,Heat / Haba,Water / Air,Light / Cahaya,"A,C,D",
+,checkbox,Combustion / Pembakaran 会产生,Heat energy / Tenaga Haba,Light energy / Tenaga cahaya,Sound energy / Tenaga bunyi,Kinetic energy / Tenaga kinetik,Chemical energy / Tenaga kimia,,"A,B",
+,radio,哪种灭火器能灭完所有火?,Water / Air,Foam / Buih,Dry powder / Serbuk kering,Carbon dioxide / Karbon dioksida,Dry sand / Pasir kering,,C,
+,text,人着火可以用什么灭火？,,,,,,,"fire blanket,selimut api",
