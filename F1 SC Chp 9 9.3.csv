@@ -1,3 +1,8 @@
-﻿title,type,question,A,B,C,D,E,F,G,H,answer,image
-9.3 Main Processes of the Earth,checkbox,哪些是 Exogenic Process / Proses Eksogen ?,Weathering / Luluhawa,Erosion / Hakisan,Mass and land depletion / Susutan jisim dan susutan darat,Transport and sedimentation / Angkutan dan pengenapan,Mantle convection process / Proses olakan mantel,Earth's crust movement (Plate Tectonics) / Proses pergerakan kerak Bumi (Plat Tektonik),Magma activity / Aktiviti magm,,"A,B,C,D",
-,checkbox,哪些是 Endogenic Process / Proses Endogen ?,Weathering / Luluhawa,Erosion / Hakisan,Mass and land depletion / Susutan jisim dan susutan darat,Transport and sedimentation / Angkutan dan pengenapan,Mantle convection process / Proses olakan mantel,Earth's crust movement (Plate Tectonics) / Proses pergerakan kerak Bumi (Plat Tektonik),Magma activity / Aktiviti magm,,"E,F,G",
+﻿title,type,question,A,B,C,D,E,answer,image
+9.3 Main Processes of the Earth,radio,Weathering / Luluhawa 属于,Exogenic Process / Proses Eksogen,Endogenic Process / Proses Endogen,,,,A,
+,radio,Erosion / Hakisan 属于,Exogenic Process / Proses Eksogen,Endogenic Process / Proses Endogen,,,,A,
+,radio,Mass and land depletion / Susutan jisim dan susutan darat 属于,Exogenic Process / Proses Eksogen,Endogenic Process / Proses Endogen,,,,A,
+,radio,Transport and sedimentation / Angkutan dan pengenapan 属于,Exogenic Process / Proses Eksogen,Endogenic Process / Proses Endogen,,,,A,
+,radio,Mantle convection process / Proses olakan mantel 属于,Exogenic Process / Proses Eksogen,Endogenic Process / Proses Endogen,,,,B,
+,radio,Earth's crust movement (Plate Tectonics) / Proses pergerakan kerak Bumi (Plat Tektonik)  属于,Exogenic Process / Proses Eksogen,Endogenic Process / Proses Endogen,,,,B,
+,radio,Magma activity / Aktiviti magma 属于,Exogenic Process / Proses Eksogen,Endogenic Process / Proses Endogen,,,,B,
