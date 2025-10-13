@@ -1,0 +1,7 @@
+﻿title,type,question,A,B,C,D,E,F,answer,image
+Density,text,这测量方法叫,,,,,,,"water displacement method,kaedah sesaran air",water_displacement_method.png
+,radio,Density / Ketumpatan =,Mass ÷ Volume / Jisim ÷ Isi padu,Volume ÷ Mass / Isi Padu ÷ Jisim,Weight × Volume / Berat × Isi Padu,Weight ÷ Volume / Berat ÷ Isi padu,,,A,
+,radio,density / ketumpatan 小=,float / terapung,sink / tenggelam,,,,,A,
+,radio,density / ketumpatan 大=,float / terapung,sink / tenggelam,,,,,B,
+,radio,Why fresh egg is sink in water? / Kenapa telur segar tenggelam dalam air?,the egg is less dense than water / telur kurang tumpat daripada air,the egg is more dense than water / telur lebih tumpat daripada air,,,,,B,
+,radio,Why cork is float on water? / Kenapa gabus terapung pada air?,the cork is less dense than water / gabus kurang tumpat daripada air,the cork is more dense than water / gabus lebih tumpat daripada air,,,,,A,

@@ -1,0 +1,13 @@
+﻿title,type,question,A,B,C,D,E,F,G,H,I,J,answer,image
+Measuring instruments,checkbox,这属于,accurate / jitu,not accurate / tidak jitu,consistent / persis,not consistent / tidak persis,,,,,,,"A,C",accuracy_1.png
+,checkbox,这属于,accurate / jitu,not accurate / tidak jitu,consistent / persis,not consistent / tidak persis,,,,,,,"B,C",accuracy_2.png
+,checkbox,这属于,accurate / jitu,not accurate / tidak jitu,consistent / persis,not consistent / tidak persis,,,,,,,"A,D",accuracy_3.png
+,checkbox,这属于,accurate / jitu,not accurate / tidak jitu,consistent / persis,not consistent / tidak persis,,,,,,,"B,D",accuracy_4.png
+,checkbox,测量 length / panjang 的工具,ruler / pembaris,measuring tape / pita pengukur,lever balance / neraca tuas,triple beam balance / neraca tiga alur,stopwatch / jam randik,laboratory thermometer / termometer makmal,clinical thermometer / termometer klinik,ammeter,measuring cylinder / silinder penyukat,,"A,B",
+,checkbox,测量 mass / jisim 的工具,ruler / pembaris,measuring tape / pita pengukur,lever balance / neraca tuas,triple beam balance / neraca tiga alur,stopwatch / jam randik,laboratory thermometer / termometer makmal,clinical thermometer / termometer klinik,ammeter,measuring cylinder / silinder penyukat,,"C,D",
+,radio,测量 time / masa 的工具,ruler / pembaris,measuring tape / pita pengukur,lever balance / neraca tuas,triple beam balance / neraca tiga alur,stopwatch / jam randik,laboratory thermometer / termometer makmal,clinical thermometer / termometer klinik,ammeter,measuring cylinder / silinder penyukat,,E,
+,checkbox,测量 temperature / suhu 的工具,ruler / pembaris,measuring tape / pita pengukur,lever balance / neraca tuas,triple beam balance / neraca tiga alur,stopwatch / jam randik,laboratory thermometer / termometer makmal,clinical thermometer / termometer klinik,ammeter,measuring cylinder / silinder penyukat,,"F,G",
+,radio,测量 electric current / arus elektrik 的工具,ruler / pembaris,measuring tape / pita pengukur,lever balance / neraca tuas,triple beam balance / neraca tiga alur,stopwatch / jam randik,laboratory thermometer / termometer makmal,clinical thermometer / termometer klinik,ammeter,measuring cylinder / silinder penyukat,,H,
+,radio,测量 volume / isi padu 的工具,ruler / pembaris,measuring tape / pita pengukur,lever balance / neraca tuas,triple beam balance / neraca tiga alur,stopwatch / jam randik,laboratory thermometer / termometer makmal,clinical thermometer / termometer klinik,ammeter,measuring cylinder / silinder penyukat,,I,
+,text,这工具的名字是,,,,,,,,,,,"micrometer screw gauge,tolok skru mikrometer",micrometer.png
+,text,这工具的名字是,,,,,,,,,,,"vernier calipers,angkup vernier",vernier_calipers.png
