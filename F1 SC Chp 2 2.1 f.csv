@@ -1,0 +1,12 @@
+﻿title,type,question,A,B,C,D,E,F,G,answer,image
+Animal cells and Plant cells,radio,A,Nucleus / Nukleus,Cell wall / Dinding sel,Cytoplasm / Sitoplasma,Vacuole / Vakuol,Mitochondria / Mitokondria,Cell membrane / Membran sel,Chloroplast / Kloroplas,A,animal_cell.png
+,radio,B,Nucleus / Nukleus,Cell wall / Dinding sel,Cytoplasm / Sitoplasma,Vacuole / Vakuol,Mitochondria / Mitokondria,Cell membrane / Membran sel,Chloroplast / Kloroplas,F,animal_cell.png
+,radio,C,Nucleus / Nukleus,Cell wall / Dinding sel,Cytoplasm / Sitoplasma,Vacuole / Vakuol,Mitochondria / Mitokondria,Cell membrane / Membran sel,Chloroplast / Kloroplas,C,animal_cell.png
+,radio,D,Nucleus / Nukleus,Cell wall / Dinding sel,Cytoplasm / Sitoplasma,Vacuole / Vakuol,Mitochondria / Mitokondria,Cell membrane / Membran sel,Chloroplast / Kloroplas,E,animal_cell.png
+,radio,A,Nucleus / Nukleus,Cell wall / Dinding sel,Cytoplasm / Sitoplasma,Vacuole / Vakuol,Mitochondria / Mitokondria,Cell membrane / Membran sel,Chloroplast / Kloroplas,A,plant_cell.png
+,radio,B,Nucleus / Nukleus,Cell wall / Dinding sel,Cytoplasm / Sitoplasma,Vacuole / Vakuol,Mitochondria / Mitokondria,Cell membrane / Membran sel,Chloroplast / Kloroplas,G,plant_cell.png
+,radio,C,Nucleus / Nukleus,Cell wall / Dinding sel,Cytoplasm / Sitoplasma,Vacuole / Vakuol,Mitochondria / Mitokondria,Cell membrane / Membran sel,Chloroplast / Kloroplas,E,plant_cell.png
+,radio,D,Nucleus / Nukleus,Cell wall / Dinding sel,Cytoplasm / Sitoplasma,Vacuole / Vakuol,Mitochondria / Mitokondria,Cell membrane / Membran sel,Chloroplast / Kloroplas,F,plant_cell.png
+,radio,E,Nucleus / Nukleus,Cell wall / Dinding sel,Cytoplasm / Sitoplasma,Vacuole / Vakuol,Mitochondria / Mitokondria,Cell membrane / Membran sel,Chloroplast / Kloroplas,D,plant_cell.png
+,radio,F,Nucleus / Nukleus,Cell wall / Dinding sel,Cytoplasm / Sitoplasma,Vacuole / Vakuol,Mitochondria / Mitokondria,Cell membrane / Membran sel,Chloroplast / Kloroplas,C,plant_cell.png
+,radio,G,Nucleus / Nukleus,Cell wall / Dinding sel,Cytoplasm / Sitoplasma,Vacuole / Vakuol,Mitochondria / Mitokondria,Cell membrane / Membran sel,Chloroplast / Kloroplas,B,plant_cell.png

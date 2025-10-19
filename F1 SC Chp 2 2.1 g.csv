@@ -1,0 +1,12 @@
+﻿title,type,question,A,B,answer,image
+Animal cells and Plant cells,text,A,,,"Nucleus,Nukleus",animal_cell.png
+,text,B,,,"Cell membrane,Membran sel",animal_cell.png
+,text,C,,,"Cytoplasm,Sitoplasma",animal_cell.png
+,text,D,,,"Mitochondria,Mitokondria",animal_cell.png
+,text,A,,,"Nucleus,Nukleus",plant_cell.png
+,text,B,,,"Chloroplast,Kloroplas",plant_cell.png
+,text,C,,,"Mitochondria,Mitokondria",plant_cell.png
+,text,D,,,"Cell membrane,Membran sel",plant_cell.png
+,text,E,,,"Vacuole,Vakuol",plant_cell.png
+,text,F,,,"Cytoplasm,Sitoplasma",plant_cell.png
+,text,G,,,"Cell wall,Dinding sel",plant_cell.png
