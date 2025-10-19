@@ -223,28 +223,29 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const delta = isC ? (q.attempt?1:2) : (q.attempt?-2:-1);
       score+=delta; if(isC) correct++; else wrong++;
-      let ansTxt='';
-if (delta<0) {
+let ansTxt = '';
+if (delta < 0) {
   if (q.type === 'text') {
-    // 文本题：把多个正确答案一行一个
+    // 文本题答案逐行显示
     ansTxt = q.answer.split(',')
               .map(s => s.trim())
               .filter(Boolean)
-              .map((s, i) => `${i+1}. ${s}`)
+              .map((s, i) => `${i + 1}. ${s}`)
               .join('<br>');
   } else {
-    // 选择题：把每个正确选项一行一个，显示 选项字母 + 文本（英文 / 马来文保持原样）
+    // 选择题：只显示选项文字，不显示 A/B/C/D
     ansTxt = q.answer.split(',')
               .map(s => s.trim().toUpperCase())
               .filter(Boolean)
-              .map(letter => `${letter}. ${q[letter] || letter}`)
+              .map(letter => q[letter] || letter)
               .join('<br>');
   }
 }
-// 用 innerHTML 才能渲染 <br>
+// 用 innerHTML 才能渲染换行
 fb.innerHTML = isC
   ? `正确! +${delta}`
   : `错误! ${delta}<br>正确答案：<br>${ansTxt}`;
+
 
       updateUI(delta);
       sb.disabled = true;
