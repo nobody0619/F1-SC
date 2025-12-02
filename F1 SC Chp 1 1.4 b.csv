@@ -1,5 +1,5 @@
 ﻿title,type,question,A,B,C,D,E,F,answer,image
 Errors,checkbox,哪个属于Systemic errors / Ralat sistemik ?,Zero error / Ralat sifar,Inaccurate measuring instrument / Alat pengukur yang tidak jitu,Parallax error / Ralat paralaks,Carelessness of observer when taking the reading / Kecuaian pemerhati semasa mengambil bacaan,Wrong technique / Salah teknik,,"A,B",
 ,checkbox,哪个属于Random errors / Ralat rawak ?,Zero error / Ralat sifar,Inaccurate measuring instrument / Alat pengukur yang tidak jitu,Parallax error / Ralat paralaks,Carelessness of observer when taking the reading / Kecuaian pemerhati semasa mengambil bacaan,Wrong technique / Salah teknik,,"C,D,E",
-,radio,"如何避免parallax error / ralat paralaks: 眼睛必须与读数垂直。
+,text,"如何避免parallax error / ralat paralaks: 眼睛必须与读数垂直。
 垂直的英文/马来文是",,,,,,,"perpendicular,berserenjang",
