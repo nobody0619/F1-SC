@@ -10,14 +10,12 @@
     #login,#chapters,#quiz,#finish { margin:20px; }
     #chapters,#quiz,#finish { display:none; }
 
-    /* 悬浮返回按钮 */
     .floating-back { position: sticky; top:10px; left:0; text-align:left; z-index:5; }
     .floating-back button{
       padding:10px 14px; border-radius:999px; border:0; background:#0aa; color:#fff; cursor:pointer;
       box-shadow:0 6px 14px rgba(0,0,0,.12);
     }
 
-    /* 章节页 */
     #chapters h2 { margin:10px 0 6px; }
     .group { text-align:left; margin:18px 0; }
     .group-title { font-weight:bold; font-size:18px; margin:8px 0; }
@@ -32,7 +30,6 @@
       background:#000; color:#fff; cursor:pointer;
     }
 
-    /* 测验区 */
     #topbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
     #topbar .left { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     #topbar button { padding:6px 10px; }
@@ -45,7 +42,6 @@
     img { max-width:100%; margin:10px 0; border:2px solid #ccc; }
     #submit-status { margin-top:10px; font-size:14px; }
 
-    /* 登录卡片 */
     .card {
       max-width:520px; margin:0 auto; text-align:left;
       border:1px solid #e6e6e6; border-radius:16px; padding:16px 16px 10px; background:#fff;
@@ -68,32 +64,27 @@
 </head>
 <body>
 
-  <!-- 1) 登录页 -->
+  <!-- 登录页：名字 + 密码（名字=ID） -->
   <div id="login">
     <h2 id="loginTitle"></h2>
     <div class="card">
       <div class="row">
-        <label>姓名 / Name（用于成绩记录）</label>
-        <input type="text" id="username" placeholder="例如：Lim Amy / Kee..."/>
-      </div>
-      <div class="row">
-        <label>ID / Sid（不分大小写，可包含空格）</label>
-        <input type="text" id="sid" placeholder="例如：S1110566 / Kee"/>
+        <label>名字 / Name（也是 ID）</label>
+        <input type="text" id="username" autocomplete="name"/>
       </div>
       <div class="row">
         <label>密码 / Password</label>
-        <input type="password" id="password" placeholder="请输入密码…"/>
+        <input type="password" id="password" autocomplete="current-password"/>
       </div>
       <button id="loginBtn" class="btn" type="button">登入并开始 / Login</button>
 
       <div class="row small" style="margin-top:12px;">
-        <div>✅ 若使用「万用密码」，系统将限制练习时间（默认 15 分钟）。</div>
+        <div>✅ 若使用「万用密码」，系统将限制练习时间（15 分钟）。</div>
         <div class="footer-contact">有问题可联系纪老师：<b>016-7312519</b></div>
       </div>
     </div>
   </div>
 
-  <!-- 2) 章节页 -->
   <div id="chapters">
     <div class="floating-back">
       <button type="button" id="logoutBtn">🚪 登出 / Logout</button>
@@ -102,7 +93,6 @@
     <div id="chapterWrap"></div>
   </div>
 
-  <!-- 3) 测验页 -->
   <div id="quiz">
     <div class="floating-back">
       <button type="button" id="backToListTop">🏠 回到章节选择</button>
@@ -124,7 +114,6 @@
     <div id="question-area"></div>
   </div>
 
-  <!-- 4) 完成页 -->
   <div id="finish">
     <div class="floating-back">
       <button type="button" id="backFromFinish">🏠 回到章节选择</button>
@@ -136,7 +125,7 @@
     <div id="controls"></div>
   </div>
 
-  <!-- 成绩上传：隐藏表单（用来兜底提交） -->
+  <!-- 成绩上传：隐藏表单（跨域可用） -->
   <iframe name="postFrame" style="display:none;"></iframe>
   <form id="postForm"
         action="https://script.google.com/macros/s/AKfycbwOadAK74XfAiOFkokD6zlQ8kQZTFDI0_SVWwMSSRgT8mwuoCac2VSAIj8X07L7NVVF/exec"
@@ -144,7 +133,6 @@
     <input name="book"/>
     <input name="quizId"/><input name="name"/><input name="score"/>
     <input name="correct"/><input name="wrong"/><input name="time"/>
-    <!-- 额外带上 token（后台不需要也不影响） -->
     <input name="token"/>
   </form>
 
@@ -152,53 +140,35 @@
 document.addEventListener('DOMContentLoaded', () => {
   /***********************
    * 你只需要改这里一行：BOOK
-   * 每个 repo 对应一个科目：
    * 例：F1 SC / F2 SC / F3 SC / F4 SC / F5 SC / F4 ACC / F5 ACC / MM / F4-ACC-Free
    ***********************/
-  const BOOK = 'F1 SC';  // <<< 只要改这个（F1 SC、F2 SC...）
+  const BOOK = 'F1 SC';  // <<< 每个 repo 只改这一行
 
-  // 万用密码倒计时（分钟）
   const UNIVERSAL_MINUTES = 15;
-
-  // Apps Script WebApp URL（沿用你原本 postForm 的 action）
   const SCRIPT_URL = document.getElementById('postForm').action;
 
-  // 登录页标题 = 网页 title
   document.getElementById('loginTitle').textContent = document.title;
 
-  /***********************
-   * 状态
-   ***********************/
   let user = '';
   let rows = [];
   let chapterKey, labelKey, sheetKey;
-
-  // 分组：Chp/Bab 号 -> rows；OTHERS 放最后
   let groups = new Map();
   let groupOrder = [];
-
   let currentRow = null;
 
-  // 测验状态
   let qs = [], queue = [], score = 0, correct = 0, wrong = 0;
   let chapterStart = 0;
   const MAX_OPTS = 15;
+  const countCache = new Map();
 
-  const countCache = new Map(); // sheetUrl -> 题数缓存
-
-  // auth
   const LS = {
     token: 'auth_token',
     exp: 'auth_exp',
     role: 'auth_role',
-    sid: 'auth_sid',
     name: 'auth_name',
     book: 'auth_book'
   };
 
-  /***********************
-   * 小工具：sid 归一（不分大小写 + 空格处理）
-   ***********************/
   function normalizeSid(v){
     return String(v || '').trim().replace(/\s+/g,' ').toLowerCase();
   }
@@ -209,69 +179,83 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('finish').style.display = 'none';
     document.getElementById('login').style.display = 'block';
   }
-
   function showChapters(){
     document.getElementById('login').style.display = 'none';
     document.getElementById('chapters').style.display = 'block';
   }
-
   function logout(){
     localStorage.removeItem(LS.token);
     localStorage.removeItem(LS.exp);
     localStorage.removeItem(LS.role);
-    localStorage.removeItem(LS.sid);
     localStorage.removeItem(LS.name);
     localStorage.removeItem(LS.book);
     showLogin();
   }
-
   document.getElementById('logoutBtn').onclick = logout;
 
   /***********************
-   * 登录/验证
+   * JSONP（解决 CORS）：把 callback 包在 URL 里
    ***********************/
-  async function apiPost(params){
-    const res = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: new URLSearchParams(params)
+  function jsonp(params) {
+    return new Promise((resolve, reject) => {
+      const cbName = '__cb_' + Math.random().toString(36).slice(2);
+      const url = new URL(SCRIPT_URL);
+      Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+      url.searchParams.set('callback', cbName);
+
+      const script = document.createElement('script');
+      script.src = url.toString();
+
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error('Timeout'));
+      }, 12000);
+
+      function cleanup(){
+        clearTimeout(timer);
+        delete window[cbName];
+        script.remove();
+      }
+
+      window[cbName] = (data) => {
+        cleanup();
+        resolve(data);
+      };
+
+      script.onerror = () => {
+        cleanup();
+        reject(new Error('Network/Script error'));
+      };
+
+      document.body.appendChild(script);
     });
-    const data = await res.json().catch(()=>null);
-    if (!res.ok) throw new Error((data && data.error) ? data.error : (res.status + ' ' + res.statusText));
-    return data;
   }
 
   async function doLogin(){
     const nm = document.getElementById('username').value.trim();
-    if (!nm) return alert('请输入姓名 / Please enter your name');
-
-    const sidRaw = document.getElementById('sid').value;
+    if (!nm) return alert('请输入名字 / Please enter your name');
     const pw = document.getElementById('password').value.trim();
-
-    const sid = normalizeSid(sidRaw);
-    if (!sid) return alert('请输入 ID / Sid');
     if (!pw) return alert('请输入密码 / Password');
 
-    // 请求 Apps Script 登录
-    const data = await apiPost({
+    const sid = normalizeSid(nm); // 名字=ID
+
+    const data = await jsonp({
       action: 'login',
       book: BOOK,
-      sid: sid,           // 已归一（小写）
+      sid: sid,
       password: pw
     });
 
-    if (!data || !data.ok) return alert((data && data.error) ? data.error : 'Login failed');
+    if (!data || !data.ok) return alert('登入失败：' + ((data && data.error) ? data.error : 'Unknown'));
 
-    // 保存 auth
     localStorage.setItem(LS.token, data.token);
     localStorage.setItem(LS.exp, String(data.exp));
     localStorage.setItem(LS.role, String(data.role || 'user'));
-    localStorage.setItem(LS.sid, sid);
     localStorage.setItem(LS.name, nm);
     localStorage.setItem(LS.book, BOOK);
 
     user = nm;
 
-    // 进入章节
     await loadChapters();
     showChapterList();
   }
@@ -285,17 +269,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem(LS.token);
     const exp = Number(localStorage.getItem(LS.exp) || 0);
     const book = localStorage.getItem(LS.book);
-
     if (!token || !exp || Date.now() > exp) return false;
     if (book !== BOOK) return false;
 
-    // 可选：后端 verify（确保你改了 expiry 后，旧 token 也会失效）
     try{
-      const v = await apiPost({ action:'verify', token });
+      const v = await jsonp({ action:'verify', token });
       if (!v || !v.ok) return false;
-      if (v.payload && v.payload.book && v.payload.book !== BOOK) return false;
     }catch(_){
-      // verify 失败就当未登录
       return false;
     }
 
@@ -303,15 +283,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return !!user;
   }
 
-  /***********************
-   * 万用倒计时显示
-   ***********************/
   let countdownTimer = null;
-
   function updateAuthUI(){
     const role = (localStorage.getItem(LS.role) || '').toLowerCase();
     const exp = Number(localStorage.getItem(LS.exp) || 0);
-
     const badge = document.getElementById('authBadge');
     const cdWrap = document.getElementById('countdownWrap');
 
@@ -326,7 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
     badge.style.display = 'inline-block';
     badge.textContent = role === 'universal' ? '万用模式' : (role === 'admin' ? '老师/管理员' : '已登入');
 
-    // 只有 universal 才显示倒计时
     if (role !== 'universal') {
       cdWrap.style.display = 'none';
       if (countdownTimer) clearInterval(countdownTimer);
@@ -335,7 +309,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     cdWrap.style.display = 'inline-block';
-
     const el = document.getElementById('countdown');
     if (countdownTimer) clearInterval(countdownTimer);
 
@@ -356,16 +329,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 250);
   }
 
-  /***********************
-   * 章节 / 测验（保留你原本逻辑）
-   ***********************/
   document.getElementById('backToListTop').onclick = showChapterList;
   document.getElementById('backFromFinish').onclick = () => {
     document.getElementById('finish').style.display = 'none';
     showChapterList();
   };
 
-  // 载入 Chapters.csv
   async function loadChapters() {
     return new Promise((resolve) => {
       Papa.parse('Chapters.csv', {
@@ -393,14 +362,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 提取第一个 Chp/Bab 的数字（允许 0），否则返回 null
   function getMainChapterNo(chapterStr){
     if (!chapterStr) return null;
     const m = String(chapterStr).match(/(?:^|\s)(?:Chp|Bab)\s*([0-9]+)/i);
     return m ? parseInt(m[1],10) : null;
   }
 
-  // 按 CSV 顺序建组；无编号为 OTHERS
   function buildGroupsByCsvOrder(list){
     groups = new Map();
     groupOrder = [];
@@ -409,7 +376,6 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const r of list){
       const no = getMainChapterNo(r[chapterKey]);
       const key = (no === null ? OTHERS : no);
-
       if (!groups.has(key)) {
         groups.set(key, []);
         if (key !== OTHERS) groupOrder.push(key);
@@ -423,7 +389,6 @@ document.addEventListener('DOMContentLoaded', () => {
     groups = ordered;
   }
 
-  // 渲染章节列表
   function showChapterList(){
     updateAuthUI();
 
@@ -479,7 +444,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('chapters').style.display = 'block';
   }
 
-  // 进入某一章开始测验
   function startQuiz(row){
     updateAuthUI();
 
@@ -507,7 +471,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 更新顶部 UI
   function updateUI(delta){
     document.getElementById('score').textContent =
       `得分: ${score} ${delta ? '(' + (delta>0?'+':'') + delta + ')' : ''}`;
@@ -516,9 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
     pg.max = qs.length; pg.value = qs.length - queue.length;
   }
 
-  // 出下一题
   function nextQ(){
-    // 过期保护（前端本地 exp）
     const exp = Number(localStorage.getItem(LS.exp) || 0);
     if (!exp || Date.now() > exp) {
       alert('登入已过期，请重新登入。');
@@ -558,7 +519,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sb = document.createElement('button'); sb.textContent='提交';
     sb.onclick = () => {
-      // 1) 收集作答
       let ua=[];
       if (q.type==='text'){
         ua = document.getElementById('txtAns').value
@@ -571,7 +531,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (!ua.length) return alert('请选择或输入答案');
 
-      // 2) 判分逻辑
       let isC=false;
       if (q.type==='text'){
         const lows = ua.map(s=>s.toLowerCase());
@@ -591,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       .join(',');
         isC = uaA === caA;
 
-      } else { // radio：允许多个正确答案，任一命中即可
+      } else {
         const accept = String(q.answer||'')
                          .split(',')
                          .map(s=>s.trim().toUpperCase())
@@ -599,7 +558,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isC = ua.length === 1 && accept.includes(ua[0].toUpperCase());
       }
 
-      // 统一生成正确答案 HTML（逐行，不显示 A/B/C/D）
       const allAnsHtml = (() => {
         if (q.type === 'text') {
           return String(q.answer||'')
@@ -617,14 +575,12 @@ document.addEventListener('DOMContentLoaded', () => {
                  .join('<br>');
       })();
 
-      // 3) 计分
       const delta = isC ? (q.attempt?1:2) : (q.attempt?-2:-1);
       score += delta; if (isC) correct++; else wrong++;
 
       const explainLine = q.explain
         ? `<br><span style="font-weight:normal">${String(q.explain)}</span>` : '';
 
-      // 4) 反馈：答对 / 答错都显示正确答案
       fb.innerHTML = isC
         ? `正确! +${delta}<br>正确答案：<br>${allAnsHtml}${explainLine}`
         : `错误! ${delta}<br>正确答案：<br>${allAnsHtml}${explainLine}`;
@@ -634,7 +590,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const nb = document.createElement('button'); nb.textContent = '下一题'; nb.onclick = nextQ;
       div.appendChild(nb);
 
-      // 5) 错题回推
       if (!isC){
         q.attempt++;
         for (let i=0;i<2;i++){
@@ -647,8 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('question-area').appendChild(div);
   }
 
-  // 交卷 & 上传成绩（保留你原本 fetch + form 兜底）
-  async function finishQuiz(){
+  function finishQuiz(){
     document.getElementById('quiz').style.display='none';
     document.getElementById('finish').style.display='block';
     document.getElementById('finish-msg').textContent = `恭喜 ${user}，你学会这个章节了！`;
@@ -656,43 +610,22 @@ document.addEventListener('DOMContentLoaded', () => {
       `得分: ${score}，答对 ${correct} 题，答错 ${wrong} 题`;
     document.getElementById('submit-status').textContent = '正在上传成绩…';
 
+    // ✅ 只用 form 提交（跨域稳定，不怕 CORS）
     const token = localStorage.getItem(LS.token) || '';
+    const form = document.getElementById('postForm');
+    form.book.value    = BOOK;
+    form.quizId.value  = currentRow[chapterKey];
+    form.name.value    = user;
+    form.score.value   = score;
+    form.correct.value = correct;
+    form.wrong.value   = wrong;
+    form.time.value    = Math.floor((Date.now()-chapterStart)/1000);
+    form.token.value   = token;
+    form.submit();
 
-    const payload = {
-      book: BOOK,                         // ✅ 现在以 BOOK 为准
-      quizId: currentRow[chapterKey],
-      name: user,
-      score: score,
-      correct: correct,
-      wrong: wrong,
-      time: Math.floor((Date.now()-chapterStart)/1000),
-      token: token
-    };
-
-    try {
-      // 1) 先用 fetch 正式发一次
-      const res = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: new URLSearchParams(payload)
-      });
-      if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
-      document.getElementById('submit-status').textContent = '✅ 成绩已上传';
-    } catch (e) {
-      // 2) 失败时用隐藏 form 兜底提交一次
-      const form = document.getElementById('postForm');
-      form.book.value    = payload.book;
-      form.quizId.value  = payload.quizId;
-      form.name.value    = payload.name;
-      form.score.value   = payload.score;
-      form.correct.value = payload.correct;
-      form.wrong.value   = payload.wrong;
-      form.time.value    = payload.time;
-      form.token.value   = payload.token;
-      form.submit();
-      document.getElementById('submit-status').textContent =
-        '⚠️ 成绩可能没有上传成功，请老师检查表格链接/权限';
-      console.error('Score upload failed:', e);
-    }
+    // 表单无法知道是否成功，只能提示“已提交”
+    document.getElementById('submit-status').textContent =
+      '✅ 成绩已提交（若老师表格没记录，请联系纪老师 016-7312519）';
 
     const ctrl=document.getElementById('controls'); ctrl.innerHTML='';
     const back=document.createElement('button');
@@ -709,14 +642,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return a;
   }
 
-  /***********************
-   * 启动：先验证是否已登录
-   ***********************/
   (async () => {
     const ok = await verifyExistingSession();
     if (!ok) return showLogin();
-
-    // 已登录则直接进章节
     await loadChapters();
     showChapterList();
   })();
