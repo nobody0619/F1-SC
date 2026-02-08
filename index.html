@@ -59,6 +59,7 @@
     }
     .warn { color:#b00020; font-weight:bold; }
     .footer-contact { margin-top:16px; font-size:13px; color:#444; }
+    .hint { margin-top:10px; color:#666; font-size:12px; }
   </style>
 </head>
 <body>
@@ -80,6 +81,7 @@
       <div class="row small" style="margin-top:12px;">
         <div>✅ 若使用「万用密码」，系统将限制练习时间（15 分钟）。</div>
         <div class="footer-contact">有问题可联系纪老师：<b>016-7312519</b></div>
+        <div id="loginHint" class="hint"></div>
       </div>
     </div>
   </div>
@@ -128,7 +130,6 @@
   <iframe name="postFrame" style="display:none;"></iframe>
   <form id="postForm"
         action="https://script.google.com/macros/s/AKfycbwOadAK74XfAiOFkokD6zlQ8kQZTFDI0_SVWwMSSRgT8mwuoCac2VSAIj8X07L7NVVF/exec"
-
         method="post" target="postFrame" style="display:none;">
     <input name="book"/>
     <input name="quizId"/><input name="name"/><input name="score"/>
@@ -139,14 +140,20 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   /***********************
-   * 你只需要改这里一行：BOOK
-   * 例：F1 SC / F2 SC / F3 SC / F4 SC / F5 SC / F4 ACC / F5 ACC / MM / F4-ACC-Free
+   * 每个 repo 只改这里一行：BOOK
    ***********************/
-  const BOOK = 'F1 SC'; // <<< 每个 repo 只改这一行
+  const BOOK = 'F1 SC';
 
+  /***********************
+   * 你的 Users Spreadsheet（就是你给的 sharing 链接对应的 SS_ID）
+   ***********************/
+  const USERS_SS_ID = '1ZvbDaphklJAY109Hkxlf0xg0p3K-tclImoRADDKX2qc';
+
+  // 万用密码时间（分钟）
+  const UNIVERSAL_MINUTES = 15;
+
+  // 成绩上传脚本（POST）
   const SCRIPT_URL = document.getElementById('postForm').action;
-  const LOGIN_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLihEXjAA6aYQyY0wPNX27vL-Jc-GLPcVZaD-NvZDhG-fdntJjWQwumAyuxVdSfT972YgU5yy4LSpKmQJ6oZlJQ9PL6HYPmInJhEXRLCu6e72FbVW-LHMZ12qx9tewYCj469QTSy_FvHjyRFzXIkdA7tLwRXmBsAXvSC1m2yDMJnAzLTJIH3gFPnXPfleYaPaLbEcA0zumz-UzZjDfHiH1Md3h4aTNZfKyoDuovx3yYd_uX99oWT8Qb5vLrX-cuuD9q2Zkzj5c1ji_O-HYxoru8MT8_zyzT5qB8dm3WKXyuWcEXHy3_tflhMRJfJLATAbecTB2xDXZ3o0Sne_lw&lib=MOx-KPaKQbdhFUUmp6wxVQOgnXuxWEsqY";
-
 
   document.getElementById('loginTitle').textContent = document.title;
 
@@ -154,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let rows = [];
   let chapterKey, labelKey, sheetKey;
   let groups = new Map();
-  let groupOrder = [];
   let currentRow = null;
 
   let qs = [], queue = [], score = 0, correct = 0, wrong = 0;
@@ -163,15 +169,44 @@ document.addEventListener('DOMContentLoaded', () => {
   const countCache = new Map();
 
   const LS = {
-    token: 'auth_token',
-    exp: 'auth_exp',
+    exp:  'auth_exp',
     role: 'auth_role',
     name: 'auth_name',
-    book: 'auth_book'
+    book: 'auth_book',
+    token:'auth_token'
   };
 
   function normalizeSid(v){
     return String(v || '').trim().replace(/\s+/g,' ').toLowerCase();
+  }
+
+  function toUsersSheetName(book){
+    // F1 SC -> F1_SC_USERS
+    // F4-ACC-Free -> F4_ACC_FREE_USERS
+    // MM -> MM_USERS
+    return book.toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g,'')
+      + '_USERS';
+  }
+
+  function usersCsvUrl(book){
+    const sheetName = toUsersSheetName(book);
+    return `https://docs.google.com/spreadsheets/d/${USERS_SS_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  }
+
+  function parseExpireToMs(dateStr){
+    // YYYY-MM-DD -> 当日 23:59:59.999
+    const s = String(dateStr || '').trim();
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return 0;
+    const y = Number(m[1]), mo = Number(m[2]) - 1, d = Number(m[3]);
+    return new Date(y, mo, d, 23, 59, 59, 999).getTime();
+  }
+
+  function todayStartMs(){
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).getTime();
   }
 
   function showLogin(){
@@ -179,69 +214,44 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('quiz').style.display = 'none';
     document.getElementById('finish').style.display = 'none';
     document.getElementById('login').style.display = 'block';
+
+    document.getElementById('loginHint').textContent =
+      '当前用户表：' + toUsersSheetName(BOOK) + '（请确保此工作表存在且已公开可查看）';
   }
 
   function logout(){
-    localStorage.removeItem(LS.token);
-    localStorage.removeItem(LS.exp);
-    localStorage.removeItem(LS.role);
-    localStorage.removeItem(LS.name);
-    localStorage.removeItem(LS.book);
+    try{
+      localStorage.removeItem(LS.exp);
+      localStorage.removeItem(LS.role);
+      localStorage.removeItem(LS.name);
+      localStorage.removeItem(LS.book);
+      localStorage.removeItem(LS.token);
+    }catch(_){}
     showLogin();
   }
 
   document.getElementById('logoutBtn').onclick = logout;
 
-  // JSONP（GET + callback）避免 CORS
-function jsonp(params) {
-  return new Promise((resolve, reject) => {
-    const cbName = '__cb_' + Math.random().toString(36).slice(2);
-
-    // 先注册 callback（一定要在插入 script 之前）
-    window[cbName] = (data) => {
-      cleanup();
-      resolve(data);
-    };
-
-    const q = new URLSearchParams(params);
-    q.set('callback', cbName);       // ✅ 确保一定有 callback
-    q.set('_t', String(Date.now())); // ✅ 防缓存
-
-    const src = LOGIN_URL + '&' + q.toString();
-
-
-
-    // ✅ 关键：把真实 URL 打印出来（用来定位 100%）
-    console.log('[JSONP SRC]', src);
-
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.async = true;
-
-    // ✅ 有些环境会因为 Referer/追踪保护拦 script.google.com
-    script.referrerPolicy = 'no-referrer';
-
-    const timer = setTimeout(() => {
-      cleanup();
-      reject(new Error('Timeout'));
-    }, 12000);
-
-    function cleanup() {
-      clearTimeout(timer);
-      try { delete window[cbName]; } catch(_) { window[cbName] = undefined; }
-      if (script && script.parentNode) script.parentNode.removeChild(script);
-    }
-
-    script.onerror = () => {
-      cleanup();
-      reject(new Error('Network/Script error'));
-    };
-
-    script.src = src;
-    document.body.appendChild(script);
-  });
-}
-
+  function loadUsers(book){
+    const url = usersCsvUrl(book);
+    return new Promise((resolve, reject) => {
+      Papa.parse(url, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete(res){
+          const data = (res.data || []).map(r => {
+            const o = {};
+            Object.entries(r).forEach(([k,v]) => o[String(k||'').trim()] = (v == null ? '' : String(v).trim()));
+            resolve(data);
+          });
+        },
+        error(err){
+          reject(err || new Error('Failed to load users'));
+        }
+      });
+    });
+  }
 
   async function doLogin(){
     const nm = document.getElementById('username').value.trim();
@@ -249,58 +259,73 @@ function jsonp(params) {
     if (!nm) return alert('请输入名字 / Please enter your name');
     if (!pw) return alert('请输入密码 / Password');
 
-    const sid = normalizeSid(nm); // 名字=ID
+    const sidNorm = normalizeSid(nm);
 
-    const data = await jsonp({
-      action: 'login',
-      book: BOOK,
-      sid: sid,
-      password: pw
-    });
-
-    if (!data || !data.ok) {
-      return alert('登入失败：' + ((data && data.error) ? data.error : 'Unknown'));
+    let users;
+    try{
+      users = await loadUsers(BOOK);
+    }catch(e){
+      return alert('登入失败：无法读取用户表（请确认 Share 已设为 Anyone with link 可查看）');
     }
 
-    localStorage.setItem(LS.token, data.token);
-    localStorage.setItem(LS.exp, String(data.exp));
-    localStorage.setItem(LS.role, String(data.role || 'user'));
-    localStorage.setItem(LS.name, nm);
-    localStorage.setItem(LS.book, BOOK);
+    const row = users.find(r => normalizeSid(r.sid || r.SID || r.Sid || '') === sidNorm);
+    if (!row) return alert('登入失败：找不到该名字/ID');
+
+    const realPw = String(row.password || row.Password || '').trim();
+    if (pw !== realPw) return alert('登入失败：密码错误');
+
+    const role = String(row.role || row.Role || 'user').trim().toLowerCase();
+    const expireMs = parseExpireToMs(row.expire || row.Expire || row.expiry || row.Expiry || '');
+
+    if (expireMs && expireMs < todayStartMs()) {
+      return alert('登入失败：账号已过期（expire）');
+    }
+
+    const sessionExp = (role === 'universal')
+      ? (Date.now() + UNIVERSAL_MINUTES * 60 * 1000)
+      : (expireMs || (Date.now() + 7*24*60*60*1000)); // 没写 expire 给 7 天兜底
+
+    try{
+      localStorage.setItem(LS.exp, String(sessionExp));
+      localStorage.setItem(LS.role, role || 'user');
+      localStorage.setItem(LS.name, nm);
+      localStorage.setItem(LS.book, BOOK);
+      localStorage.setItem(LS.token, 'csv-auth'); // 给成绩上传用（占位）
+    }catch(_){}
 
     user = nm;
-
     await loadChapters();
     showChapterList();
   }
 
   document.getElementById('loginBtn').onclick = () => {
-    doLogin().catch(e => alert('登入失败：' + e.message));
+    doLogin().catch(e => alert('登入失败：' + (e && e.message ? e.message : String(e))));
   };
 
   async function verifyExistingSession(){
-    const token = localStorage.getItem(LS.token);
-    const exp = Number(localStorage.getItem(LS.exp) || 0);
-    const book = localStorage.getItem(LS.book);
+    let exp = 0, book = '', nm = '';
+    try{
+      exp = Number(localStorage.getItem(LS.exp) || 0);
+      book = localStorage.getItem(LS.book) || '';
+      nm = localStorage.getItem(LS.name) || '';
+    }catch(_){ return false; }
 
-    if (!token || !exp || Date.now() > exp) return false;
+    if (!exp || Date.now() > exp) return false;
     if (book !== BOOK) return false;
 
-    try{
-      const v = await jsonp({ action:'verify', token });
-      if (!v || !v.ok) return false;
-    }catch(_){
-      return false;
-    }
-
-    user = localStorage.getItem(LS.name) || '';
+    user = nm;
     return !!user;
   }
 
   let countdownTimer = null;
   function updateAuthUI(){
-    const role = (localStorage.getItem(LS.role) || '').toLowerCase();
-    const exp = Number(localStorage.getItem(LS.exp) || 0);
+    let role = '';
+    let exp = 0;
+    try{
+      role = (localStorage.getItem(LS.role) || '').toLowerCase();
+      exp = Number(localStorage.getItem(LS.exp) || 0);
+    }catch(_){}
+
     const badge = document.getElementById('authBadge');
     const cdWrap = document.getElementById('countdownWrap');
 
@@ -349,12 +374,12 @@ function jsonp(params) {
     showChapterList();
   };
 
-  async function loadChapters() {
+  function loadChapters() {
     return new Promise((resolve) => {
       Papa.parse('Chapters.csv', {
         download:true, header:true, skipEmptyLines:true,
         complete(res) {
-          rows = res.data.map(raw => {
+          rows = (res.data || []).map(raw => {
             const r={}; Object.entries(raw).forEach(([k,v])=>r[k.trim()]=v?.toString()?.trim() ?? v);
             return r;
           });
@@ -383,23 +408,23 @@ function jsonp(params) {
   }
 
   function buildGroupsByCsvOrder(list){
-    groups = new Map();
-    groupOrder = [];
     const OTHERS = 'OTHERS';
+    const map = new Map();
+    const order = [];
 
     for (const r of list){
       const no = getMainChapterNo(r[chapterKey]);
       const key = (no === null ? OTHERS : no);
-      if (!groups.has(key)) {
-        groups.set(key, []);
-        if (key !== OTHERS) groupOrder.push(key);
+      if (!map.has(key)) {
+        map.set(key, []);
+        if (key !== OTHERS) order.push(key);
       }
-      groups.get(key).push(r);
+      map.get(key).push(r);
     }
 
     const ordered = new Map();
-    for (const k of groupOrder) ordered.set(k, groups.get(k));
-    if (groups.has(OTHERS)) ordered.set(OTHERS, groups.get(OTHERS));
+    for (const k of order) ordered.set(k, map.get(k));
+    if (map.has(OTHERS)) ordered.set(OTHERS, map.get(OTHERS));
     groups = ordered;
   }
 
@@ -442,7 +467,7 @@ function jsonp(params) {
           Papa.parse(sheet, {
             download:true, header:true, skipEmptyLines:true,
             complete(r2){
-              const cnt = r2.data.filter(q => q.question && String(q.question).trim()).length;
+              const cnt = (r2.data || []).filter(q => q.question && String(q.question).trim()).length;
               countCache.set(sheet, cnt);
               meta.textContent = '题数：' + cnt;
             },
@@ -456,6 +481,14 @@ function jsonp(params) {
 
     document.getElementById('login').style.display = 'none';
     document.getElementById('chapters').style.display = 'block';
+  }
+
+  function updateUI(delta){
+    document.getElementById('score').textContent =
+      '得分: ' + score + (delta ? (' (' + (delta>0?'+':'') + delta + ')') : '');
+    document.getElementById('remaining').textContent = '剩余题目: ' + queue.length;
+    const pg = document.getElementById('progress');
+    pg.max = qs.length; pg.value = qs.length - queue.length;
   }
 
   function startQuiz(row){
@@ -472,7 +505,7 @@ function jsonp(params) {
     Papa.parse(row[sheetKey], {
       download:true, header:true, skipEmptyLines:true,
       complete(res){
-        qs = res.data.map(q => Object.assign({}, q, { attempt: 0 }));
+        qs = (res.data || []).map(q => Object.assign({}, q, { attempt: 0 }));
         queue = shuffle(qs.filter(q => q.question && String(q.question).trim()));
         document.getElementById('quiz').style.display = 'block';
         updateUI(0);
@@ -485,16 +518,9 @@ function jsonp(params) {
     });
   }
 
-  function updateUI(delta){
-    document.getElementById('score').textContent =
-      '得分: ' + score + (delta ? (' (' + (delta>0?'+':'') + delta + ')') : '');
-    document.getElementById('remaining').textContent = '剩余题目: ' + queue.length;
-    const pg = document.getElementById('progress');
-    pg.max = qs.length; pg.value = qs.length - queue.length;
-  }
-
   function nextQ(){
-    const exp = Number(localStorage.getItem(LS.exp) || 0);
+    let exp = 0;
+    try{ exp = Number(localStorage.getItem(LS.exp) || 0); }catch(_){}
     if (!exp || Date.now() > exp) {
       alert('登入已过期，请重新登入。');
       return logout();
@@ -508,11 +534,11 @@ function jsonp(params) {
 
     const q = queue.shift();
     const div = document.createElement('div'); div.className = 'question';
-    div.innerHTML = '<p><strong>' + String(q.question||'').replace(/\\r?\\n/g,'<br/>') + '</strong></p>';
+    div.innerHTML = '<p><strong>' + String(q.question||'').replace(/\r?\n/g,'<br/>') + '</strong></p>';
 
     if (q.image){
       const img = document.createElement('img');
-      img.src = String(q.image).replace(/\\s*\\//g,'/').trim();
+      img.src = String(q.image).replace(/\s*\/\s*/g,'/').trim();
       div.appendChild(img);
     }
 
@@ -605,7 +631,7 @@ function jsonp(params) {
     document.getElementById('stats').textContent =
       '得分: ' + score + '，答对 ' + correct + ' 题，答错 ' + wrong + ' 题';
 
-    const token = localStorage.getItem(LS.token) || '';
+    const token = (function(){ try{return localStorage.getItem(LS.token)||'';}catch(_){return '';} })();
     const form = document.getElementById('postForm');
 
     form.book.value    = BOOK;
