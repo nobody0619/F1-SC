@@ -226,6 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.appendChild(script);
     });
   }
+  window.jsonp = jsonp;
 
   async function doLogin(){
     const nm = document.getElementById('username').value.trim();
