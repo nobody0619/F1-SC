@@ -204,7 +204,8 @@ function jsonp(params) {
     q.set('callback', cbName);       // ✅ 确保一定有 callback
     q.set('_t', String(Date.now())); // ✅ 防缓存
 
-    const src = SCRIPT_URL + (SCRIPT_URL.includes('?') ? '&' : '?') + q.toString();
+    const src = SCRIPT_URL + '&' + q.toString();
+
 
     // ✅ 关键：把真实 URL 打印出来（用来定位 100%）
     console.log('[JSONP SRC]', src);
