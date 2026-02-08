@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   function normalizeSid(v){
-    return String(v || '').trim().replace(/\\s+/g,' ').toLowerCase();
+    return String(v || '').trim().replace(/\s+/g,' ').toLowerCase();
   }
 
   function showLogin(){
@@ -362,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getMainChapterNo(chapterStr){
     if (!chapterStr) return null;
-    const m = String(chapterStr).match(/(?:^|\\s)(?:Chp|Bab)\\s*([0-9]+)/i);
+    const m = String(chapterStr).match(/(?:^|\s)(?:Chp|Bab)\s*([0-9]+)/i);
     return m ? parseInt(m[1],10) : null;
   }
 
