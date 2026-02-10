@@ -7,15 +7,17 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; max-width:900px; margin:auto; text-align:center; }
-    #login,#chapters,#quiz,#finish { margin:20px; }
+    #welcome,#chapters,#quiz,#finish { margin:20px; }
     #chapters,#quiz,#finish { display:none; }
 
+    /* 悬浮返回按钮 */
     .floating-back { position: sticky; top:10px; left:0; text-align:left; z-index:5; }
     .floating-back button{
       padding:10px 14px; border-radius:999px; border:0; background:#0aa; color:#fff; cursor:pointer;
       box-shadow:0 6px 14px rgba(0,0,0,.12);
     }
 
+    /* 章节页 */
     #chapters h2 { margin:10px 0 6px; }
     .group { text-align:left; margin:18px 0; }
     .group-title { font-weight:bold; font-size:18px; margin:8px 0; }
@@ -30,82 +32,45 @@
       background:#000; color:#fff; cursor:pointer;
     }
 
-    #topbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
-    #topbar .left { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    /* 测验区 */
+    #topbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    #topbar .left { display:flex; align-items:center; gap:8px; }
+    #topbar button { padding:6px 10px; }
     progress { width:100%; height:18px; }
     .question { text-align:left; margin:15px 0; padding-left:6px; }
     .option-label { display:block; margin:6px 0; cursor:pointer; }
     .feedback { font-weight:bold; margin:12px 0; }
-    input[type="text"], input[type="password"] { width:100%; padding:10px; margin:6px 0; box-sizing:border-box; }
+    input[type="text"] { width:100%; padding:6px; margin:6px 0; }
     input[type="radio"],input[type="checkbox"] { transform:scale(1.2); margin-right:8px; }
     img { max-width:100%; margin:10px 0; border:2px solid #ccc; }
     #submit-status { margin-top:10px; font-size:14px; }
-
-    .card {
-      max-width:520px; margin:0 auto; text-align:left;
-      border:1px solid #e6e6e6; border-radius:16px; padding:16px 16px 10px; background:#fff;
-      box-shadow:0 8px 18px rgba(0,0,0,.06);
-    }
-    .row { margin:10px 0; }
-    .row label { display:block; font-size:13px; color:#444; margin-bottom:6px; }
-    .btn {
-      width:100%; padding:10px 12px; border-radius:12px; border:0; background:#000; color:#fff; cursor:pointer;
-      font-size:16px;
-    }
-    .small { font-size:12px; color:#666; line-height:1.4; }
-    .pill {
-      display:inline-block; padding:4px 10px; border-radius:999px; background:#f3f3f3; font-size:12px; color:#333;
-      margin-left:8px;
-    }
-    .warn { color:#b00020; font-weight:bold; }
-    .footer-contact { margin-top:16px; font-size:13px; color:#444; }
-    .hint { margin-top:10px; color:#666; font-size:12px; }
   </style>
 </head>
 <body>
 
-  <!-- 登录页：名字 + 密码（名字=ID） -->
-  <div id="login">
-    <h2 id="loginTitle"></h2>
-    <div class="card">
-      <div class="row">
-        <label>名字 / Name（也是 ID）</label>
-        <input type="text" id="username" autocomplete="name"/>
-      </div>
-      <div class="row">
-        <label>密码 / Password</label>
-        <input type="password" id="password" autocomplete="current-password"/>
-      </div>
-      <button id="loginBtn" class="btn" type="button">登入并开始 / Login</button>
-
-      <div class="row small" style="margin-top:12px;">
-        <div>✅ 若使用「万用密码」，系统将限制练习时间（15 分钟）。</div>
-        <div class="footer-contact">有问题可联系纪老师：<b>016-7312519</b></div>
-        <div id="loginHint" class="hint"></div>
-      </div>
-    </div>
+  <!-- 1) 欢迎页（标题=网页title） -->
+  <div id="welcome">
+    <h2 id="welcomeTitle"></h2>
+    <input type="text" id="username" placeholder="姓名 / Name"/>
+    <button id="startBtn" type="button">开始 / Start</button>
   </div>
 
+  <!-- 2) 章节页 -->
   <div id="chapters">
     <div class="floating-back">
-      <button type="button" id="logoutBtn">🚪 登出 / Logout</button>
+      <button type="button">🏠 回到章节选择</button>
     </div>
     <h2>请选择章节 / Select Chapter</h2>
     <div id="chapterWrap"></div>
   </div>
 
+  <!-- 3) 测验页 -->
   <div id="quiz">
     <div class="floating-back">
       <button type="button" id="backToListTop">🏠 回到章节选择</button>
     </div>
     <div id="topbar">
-      <div class="left">
-        <span id="quiz-title" style="font-weight:bold;"></span>
-        <span id="authBadge" class="pill" style="display:none;"></span>
-        <span id="countdownWrap" class="pill" style="display:none;">
-          ⏳ <span id="countdown" class="warn">--:--</span>
-        </span>
-      </div>
+      <div class="left"><span id="quiz-title" style="font-weight:bold;"></span></div>
       <div class="right">
         <span id="score">得分: 0</span>
         <span id="remaining" style="margin-left:10px;">剩余题目: 0</span>
@@ -115,6 +80,7 @@
     <div id="question-area"></div>
   </div>
 
+  <!-- 4) 完成页 -->
   <div id="finish">
     <div class="floating-back">
       <button type="button" id="backFromFinish">🏠 回到章节选择</button>
@@ -122,11 +88,10 @@
     <h3 id="finish-msg"></h3>
     <p id="stats"></p>
     <p id="submit-status"></p>
-    <p class="small">如遇到无法登入/题目加载失败/成绩未上传，可联系纪老师：<b>016-7312519</b></p>
     <div id="controls"></div>
   </div>
 
-  <!-- 成绩上传：隐藏表单（跨域稳定） -->
+  <!-- 成绩上传：隐藏表单（用来兜底提交） -->
   <iframe name="postFrame" style="display:none;"></iframe>
   <form id="postForm"
         action="https://script.google.com/macros/s/AKfycbwOadAK74XfAiOFkokD6zlQ8kQZTFDI0_SVWwMSSRgT8mwuoCac2VSAIj8X07L7NVVF/exec"
@@ -134,301 +99,101 @@
     <input name="book"/>
     <input name="quizId"/><input name="name"/><input name="score"/>
     <input name="correct"/><input name="wrong"/><input name="time"/>
-    <input name="token"/>
   </form>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  /***********************
-   * 每个 repo 只改这里一行：BOOK
-   ***********************/
-  const BOOK = 'F1 SC';
-
-  /***********************
-   * 你的 Users Spreadsheet（就是你给的 sharing 链接对应的 SS_ID）
-   ***********************/
-  const USERS_SS_ID = '1ZvbDaphklJAY109Hkxlf0xg0p3K-tclImoRADDKX2qc';
-
-  // 万用密码时间（分钟）
-  const UNIVERSAL_MINUTES = 15;
-
-  // 成绩上传脚本（POST）
-  const SCRIPT_URL = document.getElementById('postForm').action;
-
-  document.getElementById('loginTitle').textContent = document.title;
+  // 欢迎页标题 = 网页 title
+  document.getElementById('welcomeTitle').textContent = document.title;
 
   let user = '';
   let rows = [];
   let chapterKey, labelKey, sheetKey;
+
+  // 分组：Chp/Bab 号 -> rows；OTHERS 放最后
   let groups = new Map();
+  let groupOrder = [];
+
   let currentRow = null;
 
+  // 测验状态
   let qs = [], queue = [], score = 0, correct = 0, wrong = 0;
   let chapterStart = 0;
   const MAX_OPTS = 15;
-  const countCache = new Map();
 
-  const LS = {
-    exp:  'auth_exp',
-    role: 'auth_role',
-    name: 'auth_name',
-    book: 'auth_book',
-    token:'auth_token'
-  };
+  const countCache = new Map();                // sheetUrl -> 题数缓存
+  const SCRIPT_URL = document.getElementById('postForm').action;
 
-  function normalizeSid(v){
-    return String(v || '').trim().replace(/\s+/g,' ').toLowerCase();
-  }
-
-  function toUsersSheetName(book){
-    // F1 SC -> F1_SC_USERS
-    // F4-ACC-Free -> F4_ACC_FREE_USERS
-    // MM -> MM_USERS
-    return book.toUpperCase()
-      .replace(/[^A-Z0-9]+/g, '_')
-      .replace(/^_+|_+$/g,'')
-      + '_USERS';
-  }
-
-  function usersCsvUrl(book){
-    const sheetName = toUsersSheetName(book);
-    return `https://docs.google.com/spreadsheets/d/${USERS_SS_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
-  }
-
-  function parseExpireToMs(dateStr){
-    // YYYY-MM-DD -> 当日 23:59:59.999
-    const s = String(dateStr || '').trim();
-    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!m) return 0;
-    const y = Number(m[1]), mo = Number(m[2]) - 1, d = Number(m[3]);
-    return new Date(y, mo, d, 23, 59, 59, 999).getTime();
-  }
-
-  function todayStartMs(){
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).getTime();
-  }
-
-  function showLogin(){
-    document.getElementById('chapters').style.display = 'none';
-    document.getElementById('quiz').style.display = 'none';
-    document.getElementById('finish').style.display = 'none';
-    document.getElementById('login').style.display = 'block';
-
-  }
-
-  function logout(){
-    try{
-      localStorage.removeItem(LS.exp);
-      localStorage.removeItem(LS.role);
-      localStorage.removeItem(LS.name);
-      localStorage.removeItem(LS.book);
-      localStorage.removeItem(LS.token);
-    }catch(_){}
-    showLogin();
-  }
-
-  document.getElementById('logoutBtn').onclick = logout;
-
-  function loadUsers(book){
-    const url = usersCsvUrl(book);
-    return new Promise((resolve, reject) => {
-      Papa.parse(url, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete(res){
-          const data = (res.data || []).map(r => {
-            const o = {};
-            Object.entries(r).forEach(([k,v]) => o[String(k||'').trim()] = (v == null ? '' : String(v).trim()));
-            resolve(data);
-          });
-        },
-        error(err){
-          reject(err || new Error('Failed to load users'));
-        }
-      });
-    });
-  }
-
-  async function doLogin(){
+  // 开始按钮
+  document.getElementById('startBtn').onclick = () => {
     const nm = document.getElementById('username').value.trim();
-    const pw = document.getElementById('password').value.trim();
-    if (!nm) return alert('请输入名字 / Please enter your name');
-    if (!pw) return alert('请输入密码 / Password');
-
-    const sidNorm = normalizeSid(nm);
-
-    let users;
-    try{
-      users = await loadUsers(BOOK);
-    }catch(e){
-      return alert('登入失败：无法读取用户表（请确认 Share 已设为 Anyone with link 可查看）');
-    }
-
-    const row = users.find(r => normalizeSid(r.sid || r.SID || r.Sid || '') === sidNorm);
-    if (!row) return alert('登入失败：找不到该名字/ID');
-
-    const realPw = String(row.password || row.Password || '').trim();
-    if (pw !== realPw) return alert('登入失败：密码错误');
-
-    const role = String(row.role || row.Role || 'user').trim().toLowerCase();
-    const expireMs = parseExpireToMs(row.expire || row.Expire || row.expiry || row.Expiry || '');
-
-    if (expireMs && expireMs < todayStartMs()) {
-      return alert('登入失败：账号已过期（expire）');
-    }
-
-    const sessionExp = (role === 'universal')
-      ? (Date.now() + UNIVERSAL_MINUTES * 60 * 1000)
-      : (expireMs || (Date.now() + 7*24*60*60*1000)); // 没写 expire 给 7 天兜底
-
-    try{
-      localStorage.setItem(LS.exp, String(sessionExp));
-      localStorage.setItem(LS.role, role || 'user');
-      localStorage.setItem(LS.name, nm);
-      localStorage.setItem(LS.book, BOOK);
-      localStorage.setItem(LS.token, 'csv-auth'); // 给成绩上传用（占位）
-    }catch(_){}
-
+    if (!nm) return alert('请输入姓名');
     user = nm;
-    await loadChapters();
-    showChapterList();
-  }
-
-  document.getElementById('loginBtn').onclick = () => {
-    doLogin().catch(e => alert('登入失败：' + (e && e.message ? e.message : String(e))));
+    document.getElementById('welcome').style.display = 'none';
+    loadChapters();
   };
-
-  async function verifyExistingSession(){
-    let exp = 0, book = '', nm = '';
-    try{
-      exp = Number(localStorage.getItem(LS.exp) || 0);
-      book = localStorage.getItem(LS.book) || '';
-      nm = localStorage.getItem(LS.name) || '';
-    }catch(_){ return false; }
-
-    if (!exp || Date.now() > exp) return false;
-    if (book !== BOOK) return false;
-
-    user = nm;
-    return !!user;
-  }
-
-  let countdownTimer = null;
-  function updateAuthUI(){
-    let role = '';
-    let exp = 0;
-    try{
-      role = (localStorage.getItem(LS.role) || '').toLowerCase();
-      exp = Number(localStorage.getItem(LS.exp) || 0);
-    }catch(_){}
-
-    const badge = document.getElementById('authBadge');
-    const cdWrap = document.getElementById('countdownWrap');
-
-    if (!role) {
-      badge.style.display = 'none';
-      cdWrap.style.display = 'none';
-      if (countdownTimer) clearInterval(countdownTimer);
-      countdownTimer = null;
-      return;
-    }
-
-    badge.style.display = 'inline-block';
-    badge.textContent = role === 'universal' ? '万用模式' : (role === 'admin' ? '老师/管理员' : '已登入');
-
-    if (role !== 'universal') {
-      cdWrap.style.display = 'none';
-      if (countdownTimer) clearInterval(countdownTimer);
-      countdownTimer = null;
-      return;
-    }
-
-    cdWrap.style.display = 'inline-block';
-    const el = document.getElementById('countdown');
-    if (countdownTimer) clearInterval(countdownTimer);
-
-    countdownTimer = setInterval(() => {
-      const left = exp - Date.now();
-      if (left <= 0) {
-        clearInterval(countdownTimer);
-        countdownTimer = null;
-        el.textContent = '00:00';
-        alert('万用密码时间到，请重新登入。');
-        logout();
-        return;
-      }
-      const totalSec = Math.floor(left / 1000);
-      const mm = String(Math.floor(totalSec / 60)).padStart(2, '0');
-      const ss = String(totalSec % 60).padStart(2, '0');
-      el.textContent = mm + ':' + ss;
-    }, 250);
-  }
-
   document.getElementById('backToListTop').onclick = showChapterList;
   document.getElementById('backFromFinish').onclick = () => {
     document.getElementById('finish').style.display = 'none';
     showChapterList();
   };
 
+  // 载入 Chapters.csv
   function loadChapters() {
-    return new Promise((resolve) => {
-      Papa.parse('Chapters.csv', {
-        download:true, header:true, skipEmptyLines:true,
-        complete(res) {
-          rows = (res.data || []).map(raw => {
-            const r={}; Object.entries(raw).forEach(([k,v])=>r[k.trim()]=v?.toString()?.trim() ?? v);
-            return r;
-          });
-          if (!rows.length) { alert('请检查 Chapters.csv'); return resolve(); }
+    Papa.parse('Chapters.csv', {
+      download:true, header:true, skipEmptyLines:true,
+      complete(res) {
+        rows = res.data.map(raw => {
+          const r={}; Object.entries(raw).forEach(([k,v])=>r[k.trim()]=v?.toString()?.trim() ?? v);
+          return r;
+        });
+        if (!rows.length) return alert('请检查 Chapters.csv');
 
-          const keys = Object.keys(rows[0]);
-          chapterKey = keys.find(k=>k.toLowerCase()==='chapter');
-          labelKey   = keys.find(k=>k.toLowerCase()==='label');
-          sheetKey   = keys.find(k=>k.toLowerCase()==='sheet');
-          if (!chapterKey || !labelKey || !sheetKey) {
-            alert('Chapters.csv 需要列: chapter, label, sheet');
-            return resolve();
-          }
+        const keys = Object.keys(rows[0]);
+        chapterKey = keys.find(k=>k.toLowerCase()==='chapter');
+        labelKey   = keys.find(k=>k.toLowerCase()==='label');
+        sheetKey   = keys.find(k=>k.toLowerCase()==='sheet');
+        if (!chapterKey || !labelKey || !sheetKey)
+          return alert('Chapters.csv 需要列: chapter, label, sheet');
 
-          buildGroupsByCsvOrder(rows);
-          resolve();
-        }
-      });
+        buildGroupsByCsvOrder(rows);
+        showChapterList();
+      }
     });
   }
 
+  // 提取第一个 Chp/Bab 的数字（允许 0），否则返回 null
   function getMainChapterNo(chapterStr){
     if (!chapterStr) return null;
     const m = String(chapterStr).match(/(?:^|\s)(?:Chp|Bab)\s*([0-9]+)/i);
     return m ? parseInt(m[1],10) : null;
   }
 
+  // 按 CSV 顺序建组；无编号为 OTHERS
   function buildGroupsByCsvOrder(list){
+    groups = new Map();
+    groupOrder = [];
     const OTHERS = 'OTHERS';
-    const map = new Map();
-    const order = [];
 
     for (const r of list){
       const no = getMainChapterNo(r[chapterKey]);
       const key = (no === null ? OTHERS : no);
-      if (!map.has(key)) {
-        map.set(key, []);
-        if (key !== OTHERS) order.push(key);
+
+      if (!groups.has(key)) {
+        groups.set(key, []);
+        if (key !== OTHERS) groupOrder.push(key);
       }
-      map.get(key).push(r);
+      groups.get(key).push(r);
     }
 
     const ordered = new Map();
-    for (const k of order) ordered.set(k, map.get(k));
-    if (map.has(OTHERS)) ordered.set(OTHERS, map.get(OTHERS));
+    for (const k of groupOrder) ordered.set(k, groups.get(k));
+    if (groups.has(OTHERS)) ordered.set(OTHERS, groups.get(OTHERS));
     groups = ordered;
   }
 
+  // 渲染章节列表
   function showChapterList(){
-    updateAuthUI();
-
     document.getElementById('quiz').style.display = 'none';
     document.getElementById('finish').style.display = 'none';
 
@@ -439,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const g = document.createElement('div'); g.className = 'group';
 
       const title = document.createElement('div'); title.className = 'group-title';
-      title.textContent = (key === 'OTHERS') ? '其他 Others' : ('Chp/Bab ' + key);
+      title.textContent = (key === 'OTHERS') ? '其他 Others' : `Chp/Bab ${key}`;
       g.appendChild(title);
 
       arr.forEach(row => {
@@ -447,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const left = document.createElement('div'); left.className = 'title';
         const t = document.createElement('div'); t.style.fontWeight = 'bold';
-        t.textContent = row[chapterKey] + (row[labelKey] ? ' — ' + row[labelKey] : '');
+        t.textContent = `${row[chapterKey]} ${row[labelKey] ? '— ' + row[labelKey] : ''}`;
 
         const meta = document.createElement('div'); meta.className = 'meta';
         meta.textContent = '题数：加载中…';
@@ -460,14 +225,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const sheet = row[sheetKey];
         if (countCache.has(sheet)) {
-          meta.textContent = '题数：' + countCache.get(sheet);
+          meta.textContent = `题数：${countCache.get(sheet)}`;
         } else {
           Papa.parse(sheet, {
             download:true, header:true, skipEmptyLines:true,
             complete(r2){
-              const cnt = (r2.data || []).filter(q => q.question && String(q.question).trim()).length;
+              const cnt = r2.data.filter(q => q.question && String(q.question).trim()).length;
               countCache.set(sheet, cnt);
-              meta.textContent = '题数：' + cnt;
+              meta.textContent = `题数：${cnt}`;
             },
             error(){ meta.textContent = '题数：获取失败'; }
           });
@@ -477,33 +242,23 @@ document.addEventListener('DOMContentLoaded', () => {
       wrap.appendChild(g);
     });
 
-    document.getElementById('login').style.display = 'none';
     document.getElementById('chapters').style.display = 'block';
   }
 
-  function updateUI(delta){
-    document.getElementById('score').textContent =
-      '得分: ' + score + (delta ? (' (' + (delta>0?'+':'') + delta + ')') : '');
-    document.getElementById('remaining').textContent = '剩余题目: ' + queue.length;
-    const pg = document.getElementById('progress');
-    pg.max = qs.length; pg.value = qs.length - queue.length;
-  }
-
+  // 进入某一章开始测验
   function startQuiz(row){
-    updateAuthUI();
     currentRow = row;
-
     document.getElementById('chapters').style.display = 'none';
     document.getElementById('quiz-title').textContent =
-      row[chapterKey] + (row[labelKey] ? ' — ' + row[labelKey] : '');
+      `${row[chapterKey]}${row[labelKey] ? ' — ' + row[labelKey] : ''}`;
 
-    score = 0; correct = 0; wrong = 0;
+    score = correct = wrong = 0;
     chapterStart = Date.now();
 
     Papa.parse(row[sheetKey], {
       download:true, header:true, skipEmptyLines:true,
       complete(res){
-        qs = (res.data || []).map(q => Object.assign({}, q, { attempt: 0 }));
+        qs = res.data.map(q => ({...q, attempt:0}));
         queue = shuffle(qs.filter(q => q.question && String(q.question).trim()));
         document.getElementById('quiz').style.display = 'block';
         updateUI(0);
@@ -516,135 +271,185 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // 更新顶部 UI
+  function updateUI(delta){
+    document.getElementById('score').textContent =
+      `得分: ${score} ${delta ? '(' + (delta>0?'+':'') + delta + ')' : ''}`;
+    document.getElementById('remaining').textContent = `剩余题目: ${queue.length}`;
+    const pg = document.getElementById('progress');
+    pg.max = qs.length; pg.value = qs.length - queue.length;
+  }
+
+  // 出下一题
   function nextQ(){
-    let exp = 0;
-    try{ exp = Number(localStorage.getItem(LS.exp) || 0); }catch(_){}
-    if (!exp || Date.now() > exp) {
-      alert('登入已过期，请重新登入。');
-      return logout();
-    }
-
     const qa = document.getElementById('question-area');
-    qa.innerHTML = '';
-    updateUI(0);
-
+    qa.innerHTML = ''; updateUI(0);
     if (queue.length === 0) return finishQuiz();
 
     const q = queue.shift();
     const div = document.createElement('div'); div.className = 'question';
-    div.innerHTML = '<p><strong>' + String(q.question||'').replace(/\r?\n/g,'<br/>') + '</strong></p>';
+    div.innerHTML = `<p><strong>${(q.question||'').replace(/\r?\n/g,'<br/>')}</strong></p>`;
 
     if (q.image){
       const img = document.createElement('img');
-      img.src = String(q.image).replace(/\s*\/\s*/g,'/').trim();
+      img.src = String(q.image).replace(/\s*\//g,'/').trim();
       div.appendChild(img);
     }
 
     const opts = document.createElement('div'); opts.className = 'options';
-
     if (q.type === 'text'){
       opts.innerHTML = '<input type="text" id="txtAns" placeholder="请输入答案…"/>';
     } else {
-      const letters = [];
-      for (let i=0;i<MAX_OPTS;i++) letters.push(String.fromCharCode(65+i));
+      const letters = Array.from({length:MAX_OPTS}, (_,i)=>String.fromCharCode(65+i));
       shuffle(letters.filter(l=>q[l])).forEach(l=>{
         const inp = document.createElement('input');
         inp.type = (q.type==='checkbox'?'checkbox':'radio');
         inp.name='opt'; inp.value=l; inp.id='opt_'+l;
         const lbl=document.createElement('label'); lbl.className='option-label'; lbl.htmlFor='opt_'+l;
-        lbl.appendChild(inp); lbl.append(' ' + q[l]); opts.appendChild(lbl);
+        lbl.appendChild(inp); lbl.append(' '+q[l]); opts.appendChild(lbl);
       });
     }
-
     div.appendChild(opts);
 
-    const fb = document.createElement('div'); fb.className='feedback';
-    div.appendChild(fb);
+    const fb = document.createElement('div'); fb.className='feedback'; div.appendChild(fb);
 
     const sb = document.createElement('button'); sb.textContent='提交';
     sb.onclick = () => {
+      // 1) 收集作答
       let ua=[];
       if (q.type==='text'){
-        ua = document.getElementById('txtAns').value.split(',').map(s=>s.trim()).filter(Boolean);
+        ua = document.getElementById('txtAns').value
+               .split(',')
+               .map(s=>s.trim())
+               .filter(Boolean);
       } else {
-        ua = Array.from(div.querySelectorAll('input[name="opt"]:checked')).map(i=>i.value);
+        ua = Array.from(div.querySelectorAll('input[name="opt"]:checked'))
+               .map(i=>i.value);
       }
       if (!ua.length) return alert('请选择或输入答案');
 
+      // 2) 判分逻辑
       let isC=false;
       if (q.type==='text'){
         const lows = ua.map(s=>s.toLowerCase());
-        const ansList = String(q.answer||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+        const ansList = String(q.answer||'')
+                          .split(',')
+                          .map(s=>s.trim().toLowerCase())
+                          .filter(Boolean);
         isC = lows.some(v=>ansList.includes(v));
+
       } else if (q.type === 'checkbox') {
         const uaA = ua.map(s=>s.toUpperCase()).sort().join(',');
-        const caA = String(q.answer||'').split(',').map(s=>s.trim().toUpperCase()).filter(Boolean).sort().join(',');
+        const caA = String(q.answer||'')
+                      .split(',')
+                      .map(s=>s.trim().toUpperCase())
+                      .filter(Boolean)
+                      .sort()
+                      .join(',');
         isC = uaA === caA;
-      } else {
-        const accept = String(q.answer||'').split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
+
+      } else { // radio：允许多个正确答案，任一命中即可
+        const accept = String(q.answer||'')
+                         .split(',')
+                         .map(s=>s.trim().toUpperCase())
+                         .filter(Boolean);
         isC = ua.length === 1 && accept.includes(ua[0].toUpperCase());
       }
 
-      const allAnsHtml = (function(){
+      // 统一生成正确答案 HTML（逐行，不显示 A/B/C/D）
+      const allAnsHtml = (() => {
         if (q.type === 'text') {
-          return String(q.answer||'').split(',').map(s=>s.trim()).filter(Boolean)
-            .map((s,i)=> (i+1) + '. ' + s).join('<br>');
+          return String(q.answer||'')
+                   .split(',')
+                   .map(s=>s.trim())
+                   .filter(Boolean)
+                   .map((s,i)=>`${i+1}. ${s}`)
+                   .join('<br>');
         }
-        return String(q.answer||'').split(',').map(s=>s.trim().toUpperCase()).filter(Boolean)
-          .map(letter => q[letter] || letter).join('<br>');
+        return String(q.answer||'')
+                 .split(',')
+                 .map(s=>s.trim().toUpperCase())
+                 .filter(Boolean)
+                 .map(letter => q[letter] || letter)
+                 .join('<br>');
       })();
 
+      // 3) 计分
       const delta = isC ? (q.attempt?1:2) : (q.attempt?-2:-1);
-      score += delta;
-      if (isC) correct++; else wrong++;
+      score += delta; if (isC) correct++; else wrong++;
 
-      const explainLine = q.explain ? '<br><span style="font-weight:normal">' + String(q.explain) + '</span>' : '';
+      const explainLine = q.explain
+        ? `<br><span style="font-weight:normal">${String(q.explain)}</span>` : '';
 
+      // 4) 反馈：答对 / 答错都显示正确答案
       fb.innerHTML = isC
-        ? ('正确! +' + delta + '<br>正确答案：<br>' + allAnsHtml + explainLine)
-        : ('错误! ' + delta + '<br>正确答案：<br>' + allAnsHtml + explainLine);
+        ? `正确! +${delta}<br>正确答案：<br>${allAnsHtml}${explainLine}`
+        : `错误! ${delta}<br>正确答案：<br>${allAnsHtml}${explainLine}`;
 
       updateUI(delta);
       sb.disabled = true;
-
       const nb = document.createElement('button'); nb.textContent = '下一题'; nb.onclick = nextQ;
       div.appendChild(nb);
 
+      // 5) 错题回推
       if (!isC){
         q.attempt++;
         for (let i=0;i<2;i++){
-          queue.splice(Math.floor(Math.random()*(queue.length+1)),0,Object.assign({}, q));
+          queue.splice(Math.floor(Math.random()*(queue.length+1)),0,{...q});
         }
       }
     };
-
     div.appendChild(sb);
-    qa.appendChild(div);
+
+    document.getElementById('question-area').appendChild(div);
   }
 
-  function finishQuiz(){
+  // 交卷 & 上传成绩
+  async function finishQuiz(){
     document.getElementById('quiz').style.display='none';
     document.getElementById('finish').style.display='block';
-    document.getElementById('finish-msg').textContent = '恭喜 ' + user + '，你学会这个章节了！';
+    document.getElementById('finish-msg').textContent = `恭喜 ${user}，你学会这个章节了！`;
     document.getElementById('stats').textContent =
-      '得分: ' + score + '，答对 ' + correct + ' 题，答错 ' + wrong + ' 题';
+      `得分: ${score}，答对 ${correct} 题，答错 ${wrong} 题`;
+    document.getElementById('submit-status').textContent = '正在上传成绩…';
 
-    const token = (function(){ try{return localStorage.getItem(LS.token)||'';}catch(_){return '';} })();
-    const form = document.getElementById('postForm');
+    // 从 title 抓 F? SC / F? ACC 作为 book
+    const m = document.title.match(/(F\d+\s+(?:SC|ACC))/i);
+    const book = m ? m[1].toUpperCase() : 'DEFAULT';
 
-    form.book.value    = BOOK;
-    form.quizId.value  = currentRow[chapterKey];
-    form.name.value    = user;
-    form.score.value   = score;
-    form.correct.value = correct;
-    form.wrong.value   = wrong;
-    form.time.value    = Math.floor((Date.now()-chapterStart)/1000);
-    form.token.value   = token;
+    const payload = {
+      book: book,
+      quizId: currentRow[chapterKey],
+      name: user,
+      score: score,
+      correct: correct,
+      wrong: wrong,
+      time: Math.floor((Date.now()-chapterStart)/1000)
+    };
 
-    form.submit();
-
-    document.getElementById('submit-status').textContent =
-      '✅ 成绩已提交（若老师表格没记录，请联系纪老师 016-7312519）';
+    try {
+      // 1) 先用 fetch 正式发一次
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: new URLSearchParams(payload)
+      });
+      if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+      document.getElementById('submit-status').textContent = '✅ 成绩已上传';
+    } catch (e) {
+      // 2) 失败时用隐藏 form 兜底提交一次
+      const form = document.getElementById('postForm');
+      form.book.value    = payload.book;
+      form.quizId.value  = payload.quizId;
+      form.name.value    = payload.name;
+      form.score.value   = payload.score;
+      form.correct.value = payload.correct;
+      form.wrong.value   = payload.wrong;
+      form.time.value    = payload.time;
+      form.submit();
+      document.getElementById('submit-status').textContent =
+        '⚠️ 成绩可能没有上传成功，请老师检查表格链接/权限';
+      console.error('Score upload failed:', e);
+    }
 
     const ctrl=document.getElementById('controls'); ctrl.innerHTML='';
     const back=document.createElement('button');
@@ -656,17 +461,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function shuffle(a){
     for(let i=a.length-1;i>0;i--){
       const j=Math.floor(Math.random()*(i+1));
-      const t=a[i]; a[i]=a[j]; a[j]=t;
+      [a[i],a[j]]=[a[j],a[i]];
     }
     return a;
   }
-
-  (async () => {
-    const ok = await verifyExistingSession();
-    if (!ok) return showLogin();
-    await loadChapters();
-    showChapterList();
-  })();
 });
 </script>
 </body>
