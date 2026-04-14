@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('loginTitle').textContent = document.title;
 
   const MAX_OPTS = 15;
-  const SCRIPT_URL = document.getElementById('postForm').action;
+  const SCRIPT_URL = document.getElementById('postForm').getAttribute('action');
   const STORAGE_KEY = 'kee_quiz_game_auth_v1';
   const TZ = 'Asia/Kuala_Lumpur';
 
