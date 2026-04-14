@@ -7,758 +7,455 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <style>
     :root{
-      --bg:#f6fbff; --card:#fff; --line:#dbe8f2; --text:#163043; --muted:#5f7485;
-      --primary:#0b88c9; --primary2:#0e5f8f; --good:#118847; --bad:#d64545; --warn:#c47a00;
-      --shadow:0 10px 26px rgba(10,49,77,.08);
+      --bg:#f6f8fb; --card:#fff; --line:#e5e7eb; --text:#111827; --muted:#6b7280;
+      --primary:#0f766e; --danger:#b91c1c; --warn:#b45309; --ok:#15803d; --boss:#7c3aed;
     }
     *{box-sizing:border-box}
-    body{font-family:Arial,sans-serif; background:var(--bg); color:var(--text); max-width:1100px; margin:auto; padding:14px; text-align:center;}
-    h1,h2,h3,p{margin:0}
-    button{cursor:pointer; border:0; border-radius:12px; padding:10px 14px; font-weight:700}
-    button.primary{background:var(--primary); color:#fff}
-    button.secondary{background:#edf7fd; color:var(--primary2); border:1px solid #c6e6f7}
-    button.dark{background:#111; color:#fff}
-    button.good{background:var(--good); color:#fff}
-    button.warn{background:#fff3dc; color:#8a5b00; border:1px solid #f2d18a}
-    button.ghost{background:#fff; color:var(--text); border:1px solid var(--line)}
-    button:disabled{opacity:.55; cursor:not-allowed}
-    input, select{width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:12px; font-size:15px; background:#fff}
-    progress{width:100%; height:18px}
-    img{max-width:100%; margin:10px 0; border:2px solid #d7e6f0; border-radius:10px}
-    .hidden{display:none !important}
-    .page{display:none; margin:14px 0}
-    .page.active{display:block}
-    .card{background:var(--card); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow)}
-    .panel{padding:16px}
-    .stack{display:flex; flex-direction:column; gap:12px}
-    .row{display:flex; gap:12px; align-items:center}
-    .row.wrap{flex-wrap:wrap}
-    .grow{flex:1}
+    body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);max-width:980px;margin:auto;padding:12px;text-align:center}
+    #login,#chapters,#quiz,#finish{margin:14px 0}
+    #chapters,#quiz,#finish{display:none}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 4px 16px rgba(0,0,0,.04)}
+    .floating-back{position:sticky;top:10px;left:0;text-align:left;z-index:5;margin-bottom:10px}
+    .floating-back button,.btn{padding:10px 14px;border-radius:999px;border:0;background:#111827;color:#fff;cursor:pointer}
+    .btn.secondary{background:#fff;color:#111827;border:1px solid #111827}
+    .btn.ghost{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe}
+    .btn.boss{background:var(--boss)}
+    .btn.small{padding:7px 11px;border-radius:10px;font-size:13px}
+    input[type="text"], input[type="password"]{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:12px;margin:8px 0;background:#fff}
+    .login-wrap{max-width:430px;margin:30px auto}
+    .top-stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+    .pill{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 12px;font-size:14px}
+    .group{margin:16px 0;text-align:left}
+    .group-title{font-size:20px;font-weight:700;margin:8px 0 10px}
+    .boss-card,.monster-item{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);background:#fff;border-radius:16px;padding:12px 14px;margin:10px 0}
+    .boss-card{border-color:#ddd6fe;background:#faf5ff}
+    .title{text-align:left;min-width:0}
+    .title-main{font-weight:700}
+    .meta{color:var(--muted);font-size:13px;margin-top:4px;line-height:1.5}
+    .status{font-weight:700}
+    .alive{color:var(--ok)} .dead{color:var(--danger)} .locked{color:var(--warn)}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    #topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+    #topbar .left{text-align:left}
+    progress{width:100%;height:18px}
+    .question{text-align:left;margin:15px 0;padding-left:6px}
+    .option-label{display:block;margin:6px 0;cursor:pointer;padding:8px;border-radius:10px}
+    .option-label:hover{background:#f3f4f6}
+    .feedback{font-weight:bold;margin:12px 0;line-height:1.6}
+    input[type="radio"],input[type="checkbox"]{transform:scale(1.2);margin-right:8px}
+    img{max-width:100%;margin:10px 0;border:2px solid #ccc;border-radius:10px}
+    #submit-status{margin-top:10px;font-size:14px}
     .muted{color:var(--muted)}
-    .small{font-size:12px}
-    .tiny{font-size:11px}
-    .pill{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#eef8fe; border:1px solid #d2ebfa; color:var(--primary2); font-size:12px; font-weight:700}
-    .danger{color:var(--bad)} .success{color:var(--good)} .warning{color:var(--warn)}
-    .floating-back{position:sticky; top:8px; z-index:10; text-align:left; margin-bottom:8px}
-    .floating-back button{background:#0aa; color:#fff; box-shadow:0 6px 14px rgba(0,0,0,.12)}
-    #welcome .card{max-width:680px; margin:0 auto}
-    .login-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; text-align:left}
-    .login-grid .full{grid-column:1 / -1}
-    .box-title{font-size:22px; font-weight:800; margin-bottom:6px}
-    .sub{margin-bottom:8px; color:var(--muted)}
-    .group{margin:18px 0; text-align:left}
-    .group-title{font-weight:800; font-size:18px; margin:8px 0 10px}
-    .chapter-card{display:flex; justify-content:space-between; gap:12px; align-items:center; border:1px solid var(--line); border-radius:16px; padding:14px; margin:10px 0; background:#fff}
-    .chapter-meta{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
-    .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
-    .topbar{display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:10px}
-    .question{padding:6px 2px 16px; text-align:left}
-    .question p{line-height:1.6}
-    .option-label{display:block; margin:8px 0; cursor:pointer; padding:8px 10px; border:1px solid #e3eef5; border-radius:10px; background:#fcfeff}
-    .feedback{font-weight:700; margin:12px 0; line-height:1.6}
-    input[type="radio"],input[type="checkbox"]{transform:scale(1.15); margin-right:8px}
-    .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
-    .stat{padding:14px; border-radius:16px; border:1px solid var(--line); background:#fff}
-    .stat strong{display:block; font-size:22px; margin-top:6px}
-    .profilebar{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 14px; margin-bottom:14px; text-align:left}
-    .profile-left,.profile-right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    .game-grid{display:grid; grid-template-columns:1.15fr .85fr; gap:14px; text-align:left}
-    .battle-board{padding:16px}
-    .fighter{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px; border:1px solid var(--line); border-radius:16px; background:#fbfeff; margin-bottom:10px}
-    .hpbar{width:100%; height:16px; background:#eaf1f6; border-radius:999px; overflow:hidden; margin-top:8px}
-    .hpbar > div{height:100%; background:linear-gradient(90deg,#14a95a,#7fd968)}
-    .enemy .hpbar > div{background:linear-gradient(90deg,#ff7b7b,#ffb16d)}
-    .game-log{height:200px; overflow:auto; padding:10px; border:1px solid var(--line); border-radius:14px; background:#fff}
-    .log-item{padding:6px 0; border-bottom:1px dashed #e4eef5; font-size:14px}
-    .reward-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
-    .reward-card{border:1px solid var(--line); border-radius:14px; padding:12px; background:#fff; cursor:pointer; text-align:center}
-    .reward-card:hover{transform:translateY(-1px)}
-    .finish-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:12px}
-    .kbd{font-family:monospace; background:#f2f7fb; padding:2px 6px; border-radius:6px}
-    .tip{padding:12px; border:1px solid #dbeaf5; background:#fafdff; border-radius:14px; text-align:left}
-    @media (max-width:860px){
-      .login-grid,.stat-grid,.game-grid,.finish-grid{grid-template-columns:1fr}
-      .chapter-card,.topbar,.profilebar{flex-direction:column; align-items:flex-start}
-      .actions{justify-content:flex-start}
-    }
+    .hide{display:none!important}
   </style>
 </head>
 <body>
-  <div id="welcome" class="page active">
-    <div class="card panel stack">
-      <div>
-        <div class="box-title" id="welcomeTitle"></div>
-        <p class="sub">保留原本刷题功能，并加入月密码、Level、智能推荐、打怪与盲盒奖励。</p>
-      </div>
-      <div class="tip small">
-        <div><strong>月密码表建议字段：</strong><span class="kbd">month,password,start,end,enabled,note</span></div>
-        <div><strong>month</strong> 可填 <span class="kbd">2026-04</span>；也可直接用 <span class="kbd">start/end</span> 控制有效期。你可以一次填好几个月。</div>
-      </div>
-      <div class="login-grid">
-        <div>
-          <label>姓名 / Name</label>
-          <input type="text" id="username" placeholder="例如：Amy"/>
-        </div>
-        <div>
-          <label>学生ID（可空）</label>
-          <input type="text" id="studentId" placeholder="例如：S001"/>
-        </div>
-        <div class="full">
-          <label>本月密码 / Monthly Password</label>
-          <input type="password" id="monthlyPassword" placeholder="输入本月密码"/>
-        </div>
-      </div>
-      <div class="row wrap">
-        <button class="primary" id="startBtn" type="button">开始 / Start</button>
-        <span class="muted small" id="loginStatus">系统会先检查月密码，再读取学生资料与等级。</span>
-      </div>
+
+<div id="login" class="login-wrap">
+  <div class="card">
+    <h2 id="loginTitle"></h2>
+    <p class="muted">请输入姓名和月密码</p>
+    <input type="text" id="username" placeholder="姓名 / Name"/>
+    <input type="password" id="monthPassword" placeholder="月密码 / Monthly Password"/>
+    <button id="startBtn" class="btn" type="button">进入 / Start</button>
+    <p id="loginMsg" class="muted"></p>
+  </div>
+</div>
+
+<div id="chapters">
+  <div class="floating-back">
+    <button type="button" id="logoutBtn">⎋ 退出</button>
+  </div>
+  <div class="card" style="margin-bottom:12px;">
+    <h2 style="margin:0 0 10px;">怪物复习地图</h2>
+    <div class="top-stats">
+      <div class="pill" id="statUser">学生：-</div>
+      <div class="pill" id="statBook">科目：-</div>
+      <div class="pill" id="statLevel">Level 1</div>
+      <div class="pill" id="statExp">EXP 0</div>
     </div>
   </div>
+  <div id="chapterWrap"></div>
+</div>
 
-  <div id="chapters" class="page">
-    <div class="floating-back"><button type="button" id="logoutBtn">🚪 退出登录</button></div>
-    <div class="card profilebar">
-      <div class="profile-left">
-        <span class="pill" id="profileName">学生：-</span>
-        <span class="pill" id="profileLevel">Lv.1</span>
-        <span class="pill" id="profileExp">EXP 0 / 120</span>
-        <span class="pill" id="profileStreak">连胜 0</span>
-      </div>
-      <div class="profile-right">
-        <button class="warn" id="smartPracticeBtn" type="button">🧠 智能练习</button>
-        <button class="secondary" id="smartGameBtn" type="button">🎮 智能打怪</button>
-      </div>
-    </div>
-
-    <div class="card panel stack" style="margin-bottom:14px; text-align:left;">
-      <div class="row wrap" style="justify-content:space-between;">
-        <div>
-          <h2>请选择章节 / Select Chapter</h2>
-          <p class="muted small">系统会根据 Level、最近正确率、错题记录，推荐更适合学生当前程度的练习与游戏。</p>
-        </div>
-        <div class="pill" id="recommendText">推荐：读取中…</div>
-      </div>
-      <div class="stat-grid">
-        <div class="stat"><div class="muted small">总作答</div><strong id="sumAnswered">0</strong></div>
-        <div class="stat"><div class="muted small">总答对</div><strong id="sumCorrect">0</strong></div>
-        <div class="stat"><div class="muted small">平均正确率</div><strong id="sumAccuracy">0%</strong></div>
-        <div class="stat"><div class="muted small">已完成章节</div><strong id="sumCompleted">0</strong></div>
-      </div>
-    </div>
-
-    <div id="chapterWrap"></div>
+<div id="quiz">
+  <div class="floating-back">
+    <button type="button" id="backToListTop">🏠 回到章节选择</button>
   </div>
-
-  <div id="quiz" class="page">
-    <div class="floating-back"><button type="button" id="backToListTop">🏠 回到章节选择</button></div>
-    <div class="card panel">
-      <div class="topbar">
-        <div class="row wrap">
-          <span id="quiz-title" style="font-weight:800;"></span>
-          <span class="pill" id="quizModeBadge">普通模式</span>
-        </div>
-        <div class="row wrap">
-          <span id="score">得分: 0</span>
-          <span id="remaining">剩余题目: 0</span>
-        </div>
+  <div class="card">
+    <div id="topbar">
+      <div class="left">
+        <div id="quiz-title" style="font-weight:bold;"></div>
+        <div id="mode-badge" class="muted"></div>
       </div>
-      <progress id="progress" value="0" max="0"></progress>
-      <div id="question-area"></div>
-    </div>
-  </div>
-
-  <div id="game" class="page">
-    <div class="floating-back"><button type="button" id="backFromGame">🏠 回到章节选择</button></div>
-    <div class="game-grid">
-      <div class="card battle-board stack">
-        <div class="row wrap" style="justify-content:space-between; align-items:flex-start;">
-          <div>
-            <h2 id="gameTitle">游戏模式</h2>
-            <p class="muted small" id="gameSubtitle">答题驱动攻击，Level 越高敌人越强。</p>
-          </div>
-          <span class="pill" id="gameModeBadge">Battle</span>
-        </div>
-
-        <div class="fighter">
-          <div class="grow">
-            <div><strong id="playerName">玩家</strong> · <span id="playerAtk">ATK 5</span> · <span id="playerShield">Shield 0</span></div>
-            <div class="hpbar"><div id="playerHpBar" style="width:100%"></div></div>
-            <div class="small muted" id="playerHpText">HP 100 / 100</div>
-          </div>
-          <div class="pill" id="playerLvTag">Lv.1</div>
-        </div>
-
-        <div class="fighter enemy">
-          <div class="grow">
-            <div><strong id="enemyName">怪物</strong> · <span id="enemyAtk">ATK 4</span></div>
-            <div class="hpbar"><div id="enemyHpBar" style="width:100%"></div></div>
-            <div class="small muted" id="enemyHpText">HP 80 / 80</div>
-          </div>
-          <div class="pill" id="roundTag">Round 1</div>
-        </div>
-
-        <progress id="gameProgress" value="0" max="0"></progress>
-        <div id="gameQuestionArea"></div>
-      </div>
-
-      <div class="stack">
-        <div class="card panel stack">
-          <h3>战斗记录</h3>
-          <div class="game-log" id="gameLog"></div>
-        </div>
-        <div class="card panel stack">
-          <div class="row wrap" style="justify-content:space-between;">
-            <h3>盲盒奖励</h3>
-            <span class="pill" id="rewardInfo">答对 3 题可抽一次</span>
-          </div>
-          <div id="rewardArea" class="reward-grid"></div>
-        </div>
+      <div class="right">
+        <span id="score">得分: 0</span>
+        <span id="remaining" style="margin-left:10px;">剩余题目: 0</span>
       </div>
     </div>
+    <progress id="progress" value="0" max="0"></progress>
+    <div id="question-area"></div>
   </div>
+</div>
 
-  <div id="finish" class="page">
-    <div class="floating-back"><button type="button" id="backFromFinish">🏠 回到章节选择</button></div>
-    <div class="card panel stack">
-      <div>
-        <h3 id="finish-msg"></h3>
-        <p id="stats" class="muted" style="margin-top:8px"></p>
-        <p id="submit-status" class="small" style="margin-top:8px"></p>
-      </div>
-      <div class="finish-grid">
-        <div class="stat"><div class="muted small">新 Level</div><strong id="finishLevel">1</strong></div>
-        <div class="stat"><div class="muted small">本次 EXP</div><strong id="finishExp">0</strong></div>
-        <div class="stat"><div class="muted small">推荐下一步</div><strong id="finishNext">继续当前</strong></div>
-      </div>
-      <div id="controls" class="row wrap"></div>
-    </div>
+<div id="finish">
+  <div class="floating-back">
+    <button type="button" id="backFromFinish">🏠 回到章节选择</button>
   </div>
+  <div class="card">
+    <h3 id="finish-msg"></h3>
+    <p id="stats"></p>
+    <p id="battle-result"></p>
+    <p id="submit-status"></p>
+    <div id="controls"></div>
+  </div>
+</div>
 
-  <iframe name="postFrame" style="display:none;"></iframe>
-  <form id="postForm" action="https://script.google.com/macros/s/AKfycbwOadAK74XfAiOFkokD6zlQ8kQZTFDI0_SVWwMSSRgT8mwuoCac2VSAIj8X07L7NVVF/exec" method="post" target="postFrame" style="display:none;">
-    <input name="book"/>
-    <input name="quizId"/><input name="name"/><input name="studentId"/>
-    <input name="score"/><input name="correct"/><input name="wrong"/><input name="time"/>
-    <input name="mode"/><input name="level"/><input name="exp"/><input name="accuracy"/>
-    <input name="event"/><input name="chapterLabel"/><input name="recommendation"/>
-  </form>
+<iframe name="postFrame" style="display:none;"></iframe>
+<form id="postForm"
+      action="https://script.google.com/macros/s/PASTE_YOUR_SCRIPT_DEPLOYMENT_ID/exec"
+      method="post" target="postFrame" style="display:none;">
+  <input name="action" value="submitScore"/>
+  <input name="book"/>
+  <input name="quizId"/><input name="name"/><input name="score"/>
+  <input name="correct"/><input name="wrong"/><input name="time"/><input name="mode"/><input name="expGained"/>
+</form>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const CONFIG = {
-    CHAPTERS_SOURCE: 'Chapters.csv',
-    PASSWORD_SOURCE: 'Passwords.csv', // 可改成 Google Sheet 的 CSV 链接
-    REQUIRE_MONTHLY_PASSWORD: true,
-    LEVEL_BASE_EXP: 120,
-    MAX_OPTS: 15,
-    RESULTS_URL: document.getElementById('postForm').action,
-    STORAGE_KEY: 'kee_quiz_profile_v4_' + location.pathname.replace(/[^a-z0-9]/gi,'_').toLowerCase(),
-    PASSWORD_REQUIRED_HINT: '本月密码错误或未到生效日期'
-  };
+  document.getElementById('loginTitle').textContent = document.title;
 
-  const $ = id => document.getElementById(id);
-  const pages = ['welcome','chapters','quiz','game','finish'];
-  const today = new Date();
-  $('welcomeTitle').textContent = document.title;
+  const MAX_OPTS = 15;
+  const SCRIPT_URL = document.getElementById('postForm').action;
+  const STORAGE_KEY = 'kee_quiz_game_auth_v1';
+  const TZ = 'Asia/Kuala_Lumpur';
 
   let user = '';
-  let studentId = '';
+  let book = inferBookFromTitle(document.title) || 'DEFAULT';
   let rows = [];
   let chapterKey, labelKey, sheetKey;
-  let groups = new Map();
-  let groupOrder = [];
   let currentRow = null;
-  let currentMode = 'normal';
-  let quizQuestions = [];
-  let queue = [];
-  let score = 0, correct = 0, wrong = 0, chapterStart = 0;
-  let passwords = [];
+  let currentMode = 'practice';
+  let currentBab = null;
+  let qs = [], queue = [], score = 0, correct = 0, wrong = 0, chapterStart = 0;
+  let currentExpGain = 0;
+  let currentBossMeta = null;
   let countCache = new Map();
-  let questionCache = new Map();
-  let lastFinishExp = 0;
-  let pendingRecommendation = null;
+  let monsterQuestionCache = new Map();
+  let progressState = { exp:0, level:1, monsters:{}, bosses:{} };
 
-  let profile = loadProfile();
-  let gameState = null;
-
-  bindEvents();
-  refreshProfileBar();
-
-  function bindEvents(){
-    $('startBtn').onclick = handleStart;
-    $('logoutBtn').onclick = logout;
-    $('backToListTop').onclick = showChapterList;
-    $('backFromFinish').onclick = () => { showChapterList(); };
-    $('backFromGame').onclick = showChapterList;
-    $('smartPracticeBtn').onclick = startSmartPractice;
-    $('smartGameBtn').onclick = startSmartGame;
+  const saved = readSavedAuth();
+  if (saved && saved.user && saved.password) {
+    document.getElementById('username').value = saved.user;
+    document.getElementById('monthPassword').value = saved.password;
   }
 
-  async function handleStart(){
-    const nm = $('username').value.trim();
-    const sid = $('studentId').value.trim();
-    const pass = $('monthlyPassword').value.trim();
-    if (!nm) return alert('请输入姓名');
-
-    $('loginStatus').textContent = '正在验证月密码与读取章节…';
-    user = nm;
-    studentId = sid;
-    profile.name = nm;
-    profile.studentId = sid;
-
-    const ok = await validateMonthlyPassword(pass);
-    if (!ok) {
-      $('loginStatus').textContent = CONFIG.PASSWORD_REQUIRED_HINT;
-      return alert(CONFIG.PASSWORD_REQUIRED_HINT);
-    }
-
-    saveProfile();
-    await loadChapters();
-    refreshProfileBar();
+  document.getElementById('startBtn').onclick = handleLogin;
+  document.getElementById('backToListTop').onclick = showChapterList;
+  document.getElementById('backFromFinish').onclick = () => {
+    document.getElementById('finish').style.display = 'none';
     showChapterList();
-  }
+  };
+  document.getElementById('logoutBtn').onclick = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  };
 
-  async function validateMonthlyPassword(inputPassword){
-    if (!CONFIG.REQUIRE_MONTHLY_PASSWORD) return true;
+  async function handleLogin(){
+    const nm = document.getElementById('username').value.trim();
+    const pwd = document.getElementById('monthPassword').value.trim();
+    const msg = document.getElementById('loginMsg');
+    if (!nm || !pwd) return msg.textContent = '请输入姓名和月密码';
+    msg.textContent = '正在验证...';
     try {
-      passwords = await parseCsvSource(CONFIG.PASSWORD_SOURCE);
+      const r = await jsonp({ action:'checkPassword', book, name:nm, password:pwd });
+      if (!r.ok) { msg.textContent = r.error || '验证失败'; return; }
+      user = nm;
+      saveAuth(user, pwd);
+      await loadChapters();
+      await loadProgress();
+      updateHeader();
+      document.getElementById('login').style.display = 'none';
+      showChapterList();
+      msg.textContent = '';
     } catch (e) {
-      console.warn('Password source load failed, fallback to allow login.', e);
-      $('loginStatus').textContent = '⚠️ 密码表读取失败，已暂时放行';
-      return true;
+      console.error(e);
+      msg.textContent = '验证失败，请检查 Apps Script 链接或密码';
     }
-    if (!passwords.length) return true;
-    const applicable = passwords.filter(isPasswordRowActive);
-    if (!applicable.length) return true;
-    return applicable.some(r => String(r.password || '').trim() === inputPassword);
   }
 
-  function isPasswordRowActive(row){
-    const enabled = String(row.enabled ?? 'true').trim().toLowerCase();
-    if (['0','false','no','n'].includes(enabled)) return false;
-    const ym = formatYM(today);
-    const rowMonth = String(row.month || '').trim();
-    const rowPass = String(row.password || '').trim();
-    if (!rowPass) return false;
-
-    const start = parseDateLoose(row.start);
-    const end = parseDateLoose(row.end);
-    if (start || end) {
-      const t = stripTime(today).getTime();
-      if (start && t < stripTime(start).getTime()) return false;
-      if (end && t > stripTime(end).getTime()) return false;
-      return true;
-    }
-    return rowMonth === '*' || rowMonth === ym;
+  function inferBookFromTitle(title){
+    const m = String(title||'').match(/(F\d+\s+(?:SC|ACC)|MM|F4-ACC-Free)/i);
+    return m ? m[1].toUpperCase() : '';
   }
 
-  async function loadChapters(){
-    rows = await parseCsvSource(CONFIG.CHAPTERS_SOURCE);
-    if (!rows.length) throw new Error('Chapters.csv is empty');
-    const keys = Object.keys(rows[0]);
-    chapterKey = keys.find(k => k.toLowerCase() === 'chapter');
-    labelKey   = keys.find(k => k.toLowerCase() === 'label');
-    sheetKey   = keys.find(k => k.toLowerCase() === 'sheet');
-    if (!chapterKey || !labelKey || !sheetKey) throw new Error('Chapters.csv 需要列: chapter, label, sheet');
-    buildGroupsByCsvOrder(rows);
+  function saveAuth(user, password){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ user, password }));
+  }
+  function readSavedAuth(){
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch { return null; }
   }
 
-  function buildGroupsByCsvOrder(list){
-    groups = new Map();
-    groupOrder = [];
-    const OTHERS = 'OTHERS';
-    for (const r of list){
-      const no = getMainChapterNo(r[chapterKey]);
-      const key = (no === null ? OTHERS : no);
-      if (!groups.has(key)) {
-        groups.set(key, []);
-        if (key !== OTHERS) groupOrder.push(key);
+  function updateHeader(){
+    document.getElementById('statUser').textContent = '学生：' + user;
+    document.getElementById('statBook').textContent = '科目：' + book;
+    document.getElementById('statExp').textContent = 'EXP ' + (progressState.exp || 0);
+    document.getElementById('statLevel').textContent = 'Level ' + (progressState.level || 1);
+  }
+
+  function jsonp(params){
+    return new Promise((resolve, reject) => {
+      const cb = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+      const s = document.createElement('script');
+      const q = new URLSearchParams({ ...params, callback: cb, _: String(Date.now()) });
+      window[cb] = (data) => {
+        cleanup();
+        resolve(data);
+      };
+      s.onerror = () => { cleanup(); reject(new Error('JSONP error')); };
+      function cleanup(){
+        delete window[cb];
+        s.remove();
       }
+      s.src = SCRIPT_URL + '?' + q.toString();
+      document.body.appendChild(s);
+    });
+  }
+
+  function loadChapters(){
+    return new Promise((resolve, reject) => {
+      Papa.parse('Chapters.csv', {
+        download:true, header:true, skipEmptyLines:true,
+        complete(res){
+          rows = res.data.map(raw => {
+            const r={}; Object.entries(raw).forEach(([k,v])=>r[k.trim()]=v?.toString()?.trim() ?? v);
+            return r;
+          });
+          if (!rows.length) return reject(new Error('请检查 Chapters.csv'));
+          const keys = Object.keys(rows[0]);
+          chapterKey = keys.find(k=>k.toLowerCase()==='chapter');
+          labelKey   = keys.find(k=>k.toLowerCase()==='label');
+          sheetKey   = keys.find(k=>k.toLowerCase()==='sheet');
+          if (!chapterKey || !labelKey || !sheetKey) return reject(new Error('Chapters.csv 需要列: chapter, label, sheet'));
+          resolve();
+        },
+        error(err){ reject(err); }
+      });
+    });
+  }
+
+  async function loadProgress(){
+    const r = await jsonp({ action:'getProgress', book, name:user });
+    if (r.ok) {
+      progressState = r.progress || { exp:0, level:1, monsters:{}, bosses:{} };
+    }
+  }
+
+  function getMainChapterNo(chapterStr){
+    if (!chapterStr) return null;
+    const m = String(chapterStr).match(/(?:^|\s)(?:Chp|Bab)\s*([0-9]+)/i);
+    return m ? parseInt(m[1],10) : null;
+  }
+
+  async function showChapterList(){
+    document.getElementById('quiz').style.display = 'none';
+    document.getElementById('finish').style.display = 'none';
+    const wrap = document.getElementById('chapterWrap');
+    wrap.innerHTML = '';
+    updateHeader();
+
+    const groups = new Map();
+    const order = [];
+    const OTHERS = 'OTHERS';
+    for (const r of rows){
+      const no = getMainChapterNo(r[chapterKey]);
+      const key = no === null ? OTHERS : String(no);
+      if (!groups.has(key)) { groups.set(key, []); if (key !== OTHERS) order.push(key); }
       groups.get(key).push(r);
     }
-    const ordered = new Map();
-    for (const k of groupOrder) ordered.set(k, groups.get(k));
-    if (groups.has(OTHERS)) ordered.set(OTHERS, groups.get(OTHERS));
-    groups = ordered;
-  }
 
-  function showPage(id){
-    pages.forEach(p => $(p).classList.toggle('active', p === id));
-  }
-
-  function showChapterList(){
-    renderChapterList();
-    refreshProfileBar();
-    showPage('chapters');
-  }
-
-  function renderChapterList(){
-    const wrap = $('chapterWrap');
-    wrap.innerHTML = '';
-    updateSummaryStats();
-    const rec = getRecommendedRow();
-    $('recommendText').textContent = rec ? `推荐：${getRowTitle(rec.row)}（${rec.reason}）` : '推荐：先从任意章节开始';
-
-    groups.forEach((arr, key) => {
+    for (const key of [...order, ...(groups.has(OTHERS)?[OTHERS]:[])]) {
+      const arr = groups.get(key);
       const g = document.createElement('div'); g.className = 'group';
       const title = document.createElement('div'); title.className = 'group-title';
-      title.textContent = (key === 'OTHERS') ? '其他 Others' : `Chp/Bab ${key}`;
+      title.textContent = key === 'OTHERS' ? '其他 Others' : `Chp/Bab ${key}`;
       g.appendChild(title);
 
-      arr.forEach(row => {
-        const item = document.createElement('div'); item.className = 'chapter-card';
-        const left = document.createElement('div'); left.className = 'grow';
-        const t = document.createElement('div'); t.style.fontWeight = '800'; t.textContent = getRowTitle(row);
-        const meta = document.createElement('div'); meta.className = 'chapter-meta';
-        const countPill = createPill('题数：加载中…');
-        const stat = getRowStat(row);
-        const accPill = createPill(`正确率：${percent(stat.correct, stat.answered)}`);
-        const recPill = createPill(`建议难度：${getDifficultyLabel(row)}`);
-        const donePill = createPill(stat.completed ? '已完成' : '未完成');
-        meta.append(countPill, accPill, recPill, donePill);
-        left.append(t, meta);
+      if (key !== 'OTHERS') {
+        const bossCard = await buildBossCard(key, arr);
+        g.appendChild(bossCard);
+      }
 
-        const actions = document.createElement('div'); actions.className = 'actions';
-        const go = button('开始', 'dark', () => startQuiz(row, 'normal'));
-        const battle = button('⚔️ 打怪', 'secondary', () => startGame(row, 'battle'));
-        const smart = button('🧠 推荐', 'warn', () => startRecommendedForRow(row));
-        actions.append(go, battle, smart);
-
-        item.append(left, actions); g.appendChild(item);
-
-        const sheet = row[sheetKey];
-        if (countCache.has(sheet)) {
-          countPill.textContent = `题数：${countCache.get(sheet)}`;
-        } else {
-          parseCsvSource(sheet).then(data => {
-            const cnt = data.filter(q => q.question && String(q.question).trim()).length;
-            countCache.set(sheet, cnt);
-            countPill.textContent = `题数：${cnt}`;
-          }).catch(() => countPill.textContent = '题数：获取失败');
-        }
-      });
+      for (const row of arr) {
+        const item = await buildMonsterItem(row);
+        g.appendChild(item);
+      }
       wrap.appendChild(g);
-    });
-  }
-
-  function updateSummaryStats(){
-    const all = Object.values(profile.chapterStats || {});
-    const answered = all.reduce((s,a)=>s+(a.answered||0),0);
-    const corr = all.reduce((s,a)=>s+(a.correct||0),0);
-    const completed = all.filter(a => a.completed).length;
-    $('sumAnswered').textContent = answered;
-    $('sumCorrect').textContent = corr;
-    $('sumAccuracy').textContent = percent(corr, answered);
-    $('sumCompleted').textContent = completed;
-  }
-
-  function refreshProfileBar(){
-    profile.level = calcLevel(profile.exp);
-    $('profileName').textContent = `学生：${profile.name || user || '-'}`;
-    $('profileLevel').textContent = `Lv.${profile.level}`;
-    $('profileExp').textContent = `EXP ${profile.expInLevel} / ${profile.nextLevelExp}`;
-    $('profileStreak').textContent = `连胜 ${profile.bestStreak || 0}`;
-  }
-
-  function startRecommendedForRow(row){
-    const stat = getRowStat(row);
-    const mode = (profile.level >= 3 && stat.answered >= 5) ? 'battle' : 'normal';
-    if (mode === 'battle') startGame(row, 'battle');
-    else startQuiz(row, 'normal');
-  }
-
-  function startSmartPractice(){
-    const rec = getRecommendedRow();
-    if (!rec) return alert('还没有可练习的章节');
-    pendingRecommendation = rec.reason;
-    startQuiz(rec.row, 'smart');
-  }
-
-  function startSmartGame(){
-    const rec = getRecommendedRow();
-    if (!rec) return alert('还没有可练习的章节');
-    pendingRecommendation = rec.reason;
-    startGame(rec.row, 'battle');
-  }
-
-  function getRecommendedRow(){
-    if (!rows.length) return null;
-    const withScore = rows.map(row => ({ row, score: getAdaptiveRowScore(row) }));
-    withScore.sort((a,b) => b.score.total - a.score.total);
-    const best = withScore[0];
-    if (!best) return null;
-    return { row: best.row, reason: best.score.reason };
-  }
-
-  function getAdaptiveRowScore(row){
-    const stat = getRowStat(row);
-    const chapterNo = getMainChapterNo(row[chapterKey]);
-    const chapterDifficulty = chapterNo === null ? profile.level : Math.max(1, chapterNo);
-    const targetDifficulty = Math.min(12, Math.max(1, Math.ceil(profile.level / 2)));
-    const diffGap = Math.abs(chapterDifficulty - targetDifficulty);
-    const accuracy = stat.answered ? stat.correct / stat.answered : 0;
-    const needFixBonus = stat.wrongStreak > 0 ? 22 : 0;
-    const recentWrongBonus = (stat.last5 || []).filter(x => !x).length * 6;
-    const notStartedBonus = stat.answered === 0 ? 18 : 0;
-    const mediumAccuracyBonus = stat.answered >= 5 && accuracy >= 0.45 && accuracy <= 0.8 ? 18 : 0;
-    const tooEasyPenalty = accuracy > 0.9 && stat.answered >= 8 ? -12 : 0;
-    const total = 100 - diffGap * 12 + needFixBonus + recentWrongBonus + notStartedBonus + mediumAccuracyBonus + tooEasyPenalty;
-    let reason = '按等级推荐';
-    if (needFixBonus) reason = '最近错题较多，适合复习';
-    else if (notStartedBonus) reason = '还没开始，适合作为新练习';
-    else if (mediumAccuracyBonus) reason = '难度刚好，适合继续推进';
-    else if (tooEasyPenalty) reason = '这章较简单，可继续往上';
-    return { total, reason };
-  }
-
-  async function startQuiz(row, mode='normal'){
-    currentRow = row;
-    currentMode = mode;
-    chapterStart = Date.now();
-    score = 0; correct = 0; wrong = 0;
-    $('quiz-title').textContent = getRowTitle(row);
-    $('quizModeBadge').textContent = mode === 'smart' ? '智能练习' : '普通模式';
-    const list = await getQuestionsForRow(row);
-    quizQuestions = list.map(q => ({...q, attempt:0}));
-    queue = shuffle(quizQuestions.filter(q => q.question && String(q.question).trim()));
-    updateQuizUI(0);
-    showPage('quiz');
-    nextQuizQuestion();
-  }
-
-  function updateQuizUI(delta){
-    $('score').textContent = `得分: ${score}${delta ? ` (${delta>0?'+':''}${delta})` : ''}`;
-    $('remaining').textContent = `剩余题目: ${queue.length}`;
-    $('progress').max = quizQuestions.length || 1;
-    $('progress').value = (quizQuestions.length - queue.length);
-  }
-
-  function nextQuizQuestion(){
-    const qa = $('question-area'); qa.innerHTML = ''; updateQuizUI(0);
-    if (queue.length === 0) return finishSession('quiz');
-    const q = queue.shift();
-    renderQuestionBlock({
-      mount: qa,
-      q,
-      submitLabel: '提交',
-      onResult: ({isCorrect, answerHtml, explainHtml}) => {
-        const delta = isCorrect ? (q.attempt ? 1 : 2) : (q.attempt ? -2 : -1);
-        score += delta;
-        if (isCorrect) correct++; else wrong++;
-        if (!isCorrect){
-          q.attempt++;
-          for (let i=0;i<2;i++) queue.splice(Math.floor(Math.random()*(queue.length+1)),0,{...q});
-        }
-        updateQuizUI(delta);
-        recordQuestionResult(currentRow, isCorrect, q);
-        return {
-          feedbackHtml: `${isCorrect ? '正确!' : '错误!'} ${delta>0?'+':''}${delta}<br>正确答案：<br>${answerHtml}${explainHtml}`,
-          nextLabel: '下一题',
-          onNext: nextQuizQuestion
-        };
-      }
-    });
-  }
-
-  async function startGame(row, mode='battle'){
-    currentRow = row;
-    currentMode = mode;
-    chapterStart = Date.now();
-    const allQs = await getQuestionsForRow(row);
-    const adaptive = buildAdaptiveGameQuestions(allQs, row);
-    const baseLevel = Math.max(1, profile.level);
-    gameState = {
-      row,
-      mode,
-      score: 0,
-      correct: 0,
-      wrong: 0,
-      round: 1,
-      answered: 0,
-      correctStreak: 0,
-      rewardReady: false,
-      queuedRewards: [],
-      usedQuestions: [],
-      queue: adaptive,
-      player: {
-        hpMax: 100 + baseLevel * 8,
-        hp: 100 + baseLevel * 8,
-        atk: 5 + Math.floor(baseLevel * 1.3),
-        shield: 0,
-        bonusCrit: 0
-      },
-      enemy: makeEnemy(baseLevel, row, 1),
-      logs: []
-    };
-    $('gameTitle').textContent = getRowTitle(row);
-    $('gameSubtitle').textContent = `系统会优先抽取适合当前 Level 的题，并在答错时回推复习。`;
-    $('gameModeBadge').textContent = 'Battle + Blind Box';
-    $('rewardArea').innerHTML = '<div class="muted small">暂未解锁，连续答对 3 题可抽盲盒。</div>';
-    renderGame();
-    showPage('game');
-    nextGameTurn();
-  }
-
-  function buildAdaptiveGameQuestions(allQs, row){
-    const stat = getRowStat(row);
-    const targetPool = allQs.filter(q => q.question && String(q.question).trim());
-    const repeatBoost = stat.wrongStreak > 0 ? 4 : 2;
-    let mixed = shuffle(targetPool.map(q => ({...q, weight:1})));
-    if (profile.level >= 4) mixed = mixed.concat(shuffle(targetPool.slice(0, Math.min(repeatBoost, targetPool.length)).map(q => ({...q, weight:2}))));
-    return shuffle(mixed).slice(0, Math.max(8, Math.min(22, 8 + profile.level * 2)));
-  }
-
-  function makeEnemy(level, row, round){
-    const chapterNo = getMainChapterNo(row[chapterKey]) || level;
-    const difficulty = Math.max(level, Math.ceil(chapterNo * 0.9));
-    const hpMax = 55 + difficulty * 15 + round * 16;
-    return {
-      name: round % 5 === 0 ? 'Boss' : round % 3 === 0 ? 'Elite' : 'Monster',
-      hpMax,
-      hp: hpMax,
-      atk: 4 + Math.floor(difficulty * 1.15) + Math.floor(round / 2)
-    };
-  }
-
-  function renderGame(){
-    const g = gameState;
-    $('playerName').textContent = profile.name || user || '玩家';
-    $('playerAtk').textContent = `ATK ${g.player.atk}`;
-    $('playerShield').textContent = `Shield ${g.player.shield}`;
-    $('playerHpText').textContent = `HP ${g.player.hp} / ${g.player.hpMax}`;
-    $('playerHpBar').style.width = `${Math.max(0, g.player.hp / g.player.hpMax * 100)}%`;
-    $('playerLvTag').textContent = `Lv.${profile.level}`;
-
-    $('enemyName').textContent = `${g.enemy.name}`;
-    $('enemyAtk').textContent = `ATK ${g.enemy.atk}`;
-    $('enemyHpText').textContent = `HP ${g.enemy.hp} / ${g.enemy.hpMax}`;
-    $('enemyHpBar').style.width = `${Math.max(0, g.enemy.hp / g.enemy.hpMax * 100)}%`;
-    $('roundTag').textContent = `Round ${g.round}`;
-
-    $('gameProgress').max = Math.max(1, g.usedQuestions.length + g.queue.length);
-    $('gameProgress').value = g.usedQuestions.length;
-    $('rewardInfo').textContent = g.rewardReady ? '可抽盲盒一次' : `再答对 ${Math.max(0, 3 - g.correctStreak)} 题可抽`;
-
-    const logBox = $('gameLog');
-    logBox.innerHTML = g.logs.map(line => `<div class="log-item">${line}</div>`).join('') || '<div class="muted small">战斗开始！</div>';
-    logBox.scrollTop = logBox.scrollHeight;
-  }
-
-  function nextGameTurn(){
-    if (!gameState) return;
-    if (gameState.player.hp <= 0) return finishSession('game');
-    if (gameState.enemy.hp <= 0) {
-      grantRoundReward();
-      gameState.round++;
-      if (gameState.round > 5 || gameState.queue.length === 0) return finishSession('game');
-      gameState.enemy = makeEnemy(profile.level, currentRow, gameState.round);
-      logGame(`🎯 进入第 ${gameState.round} 回合，出现 ${gameState.enemy.name}！`);
-      renderGame();
     }
+    document.getElementById('chapters').style.display = 'block';
+  }
 
-    const mount = $('gameQuestionArea');
-    mount.innerHTML = '';
-    if (!gameState.queue.length) return finishSession('game');
-    const q = gameState.queue.shift();
-    gameState.usedQuestions.push(q);
-    renderGame();
+  function buildMonsterId(row){
+    return [book, row[chapterKey]||'', row[labelKey]||'', row[sheetKey]||''].join('||');
+  }
 
-    renderQuestionBlock({
-      mount,
-      q,
-      submitLabel: '攻击 / 提交',
-      onResult: ({isCorrect, answerHtml, explainHtml}) => {
-        gameState.answered++;
-        let feedback = '';
-        if (isCorrect) {
-          gameState.correct++;
-          gameState.correctStreak++;
-          const crit = gameState.correctStreak >= 3 ? 2 + gameState.player.bonusCrit : 1 + gameState.player.bonusCrit;
-          const damage = gameState.player.atk * crit;
-          gameState.enemy.hp = Math.max(0, gameState.enemy.hp - damage);
-          feedback = `✅ 命中！造成 ${damage} 点伤害。<br>正确答案：<br>${answerHtml}${explainHtml}`;
-          logGame(`✅ 答对，造成 ${damage} 伤害。`);
-          if (gameState.correctStreak % 3 === 0) {
-            gameState.rewardReady = true;
-            gameState.queuedRewards = makeBlindBoxes();
-          }
-        } else {
-          gameState.wrong++;
-          gameState.correctStreak = 0;
-          let incoming = gameState.enemy.atk;
-          if (gameState.player.shield > 0) {
-            const block = Math.min(gameState.player.shield, incoming);
-            gameState.player.shield -= block;
-            incoming -= block;
-          }
-          gameState.player.hp = Math.max(0, gameState.player.hp - incoming);
-          feedback = `❌ 被反击！你受到 ${incoming} 点伤害。<br>正确答案：<br>${answerHtml}${explainHtml}`;
-          logGame(`❌ 答错，受到 ${incoming} 伤害。`);
-          gameState.queue.splice(Math.floor(Math.random()*(gameState.queue.length+1)), 0, {...q});
-        }
-        recordQuestionResult(currentRow, isCorrect, q);
-        renderGame();
-        return {
-          feedbackHtml: feedback,
-          nextLabel: gameState.rewardReady ? '抽盲盒' : '下一回合',
-          onNext: gameState.rewardReady ? openRewardChoices : nextGameTurn
-        };
-      }
+  async function getQuestionCount(url){
+    if (countCache.has(url)) return countCache.get(url);
+    const cnt = await new Promise(resolve => {
+      Papa.parse(url, {
+        download:true, header:true, skipEmptyLines:true,
+        complete(r2){
+          const c = r2.data.filter(q => q.question && String(q.question).trim()).length;
+          resolve(c);
+        },
+        error(){ resolve(0); }
+      });
+    });
+    countCache.set(url, cnt);
+    return cnt;
+  }
+
+  async function buildMonsterItem(row){
+    const item = document.createElement('div'); item.className = 'monster-item';
+    const left = document.createElement('div'); left.className = 'title';
+    const monsterId = buildMonsterId(row);
+    const st = progressState.monsters[monsterId] || {};
+    const titleText = `${row[chapterKey]}${row[labelKey] ? ' — ' + row[labelKey] : ''}`;
+    const cnt = await getQuestionCount(row[sheetKey]);
+    const now = Date.now();
+    const isDead = st.reviveAt && Number(st.reviveAt) > now;
+    const statusText = isDead ? `Dead（${daysLeft(st.reviveAt)}后复活）` : 'Alive';
+    const streak = Number(st.killStreak || 0);
+    left.innerHTML = `
+      <div class="title-main">🧟 ${escapeHtml(titleText)}</div>
+      <div class="meta">题数：${cnt}<br>状态：<span class="status ${isDead?'dead':'alive'}">${statusText}</span><br>连杀：${streak}</div>
+    `;
+
+    const actions = document.createElement('div'); actions.className = 'actions';
+    const practiceBtn = document.createElement('button');
+    practiceBtn.className = 'btn secondary small';
+    practiceBtn.textContent = '做练习';
+    practiceBtn.onclick = () => startQuiz(row, 'practice');
+
+    const fightBtn = document.createElement('button');
+    fightBtn.className = 'btn small';
+    fightBtn.textContent = '⚔️ 打怪';
+    fightBtn.disabled = isDead;
+    fightBtn.onclick = () => startQuiz(row, 'monster');
+
+    actions.append(practiceBtn, fightBtn);
+    item.append(left, actions);
+    return item;
+  }
+
+  async function buildBossCard(babNo, arr){
+    const card = document.createElement('div'); card.className = 'boss-card';
+    const left = document.createElement('div'); left.className = 'title';
+    const bossState = progressState.bosses[String(babNo)] || { hp:100, killCount:0, reviveAt:0 };
+    const total = arr.length;
+    let deadCount = 0;
+    const now = Date.now();
+    for (const row of arr) {
+      const st = progressState.monsters[buildMonsterId(row)] || {};
+      if (st.reviveAt && Number(st.reviveAt) > now) deadCount++;
+    }
+    const deadPct = total ? deadCount / total : 0;
+    const locked = deadPct < 0.7;
+    const isDead = bossState.reviveAt && Number(bossState.reviveAt) > now;
+    const bossStatus = isDead ? `Dead（${daysLeft(bossState.reviveAt)}后复活）` : (locked ? `Locked（已击败 ${deadCount}/${total} 小怪）` : `HP ${Number(bossState.hp || 100)}/100`);
+    left.innerHTML = `
+      <div class="title-main">👹 Bab ${babNo} Boss</div>
+      <div class="meta">状态：<span class="status ${isDead?'dead':(locked?'locked':'alive')}">${bossStatus}</span><br>Boss击杀次数：${Number(bossState.killCount||0)}</div>
+    `;
+    const actions = document.createElement('div'); actions.className = 'actions';
+    const btn = document.createElement('button'); btn.className = 'btn boss small'; btn.textContent = '⚔️ 挑战 Boss';
+    btn.disabled = locked || isDead;
+    btn.onclick = () => startBossFight(babNo, arr);
+    actions.appendChild(btn);
+    card.append(left, actions);
+    return card;
+  }
+
+  async function startQuiz(row, mode){
+    currentMode = mode;
+    currentRow = row;
+    currentBab = getMainChapterNo(row[chapterKey]);
+    currentBossMeta = null;
+    document.getElementById('chapters').style.display = 'none';
+    document.getElementById('quiz-title').textContent = `${row[chapterKey]}${row[labelKey] ? ' — ' + row[labelKey] : ''}`;
+    document.getElementById('mode-badge').textContent = mode === 'practice' ? '模式：普通练习' : '模式：小怪挑战';
+    score = correct = wrong = 0;
+    currentExpGain = 0;
+    chapterStart = Date.now();
+    Papa.parse(row[sheetKey], {
+      download:true, header:true, skipEmptyLines:true,
+      complete(res){
+        qs = res.data.map(q => ({...q, attempt:0})).filter(q => q.question && String(q.question).trim());
+        queue = shuffle([...qs]);
+        document.getElementById('quiz').style.display = 'block';
+        updateUI(0);
+        nextQ();
+      },
+      error(){ alert('这个章节的题目加载失败了，请检查表格链接。'); showChapterList(); }
     });
   }
 
-  function openRewardChoices(){
-    if (!gameState || !gameState.rewardReady) return nextGameTurn();
-    const area = $('rewardArea');
-    area.innerHTML = '';
-    gameState.queuedRewards.forEach(reward => {
-      const card = document.createElement('button');
-      card.className = 'reward-card';
-      card.innerHTML = `<strong>${reward.title}</strong><div class="small muted" style="margin-top:6px">${reward.desc}</div>`;
-      card.onclick = () => {
-        applyReward(reward);
-        gameState.rewardReady = false;
-        gameState.queuedRewards = [];
-        nextGameTurn();
-      };
-      area.appendChild(card);
+  async function startBossFight(babNo, arr){
+    currentMode = 'boss';
+    currentRow = { [chapterKey]: `Bab ${babNo}`, [labelKey]:'Boss Challenge' };
+    currentBab = babNo;
+    currentExpGain = 0;
+    chapterStart = Date.now();
+    score = correct = wrong = 0;
+    document.getElementById('chapters').style.display = 'none';
+    document.getElementById('quiz-title').textContent = `Bab ${babNo} Boss`;
+    document.getElementById('mode-badge').textContent = '模式：Boss 挑战';
+
+    let all = [];
+    for (const row of arr) {
+      const list = await loadQuestions(row[sheetKey]);
+      all = all.concat(list);
+    }
+    all = all.filter(q => q.question && String(q.question).trim());
+    const count = Math.min(20, Math.max(8, Math.ceil(all.length * 0.25)));
+    qs = shuffle(all).slice(0, count).map(q => ({...q, attempt:0}));
+    queue = [...qs];
+    currentBossMeta = { totalPool: all.length, count };
+    document.getElementById('quiz').style.display = 'block';
+    updateUI(0);
+    nextQ();
+  }
+
+  function loadQuestions(url){
+    if (monsterQuestionCache.has(url)) return Promise.resolve(monsterQuestionCache.get(url));
+    return new Promise(resolve => {
+      Papa.parse(url, {
+        download:true, header:true, skipEmptyLines:true,
+        complete(res){
+          const list = res.data;
+          monsterQuestionCache.set(url, list);
+          resolve(list);
+        },
+        error(){ resolve([]); }
+      });
     });
   }
 
-  function makeBlindBoxes(){
-    const options = [
-      { title:'⚔️ 攻击强化', desc:'ATK +2', apply:()=>gameState.player.atk += 2 },
-      { title:'🛡️ 护盾', desc:'Shield +8', apply:()=>gameState.player.shield += 8 },
-      { title:'❤️ 回复', desc:'HP +15', apply:()=>gameState.player.hp = Math.min(gameState.player.hpMax, gameState.player.hp + 15) },
-      { title:'💥 暴击', desc:'下一击 x2', apply:()=>gameState.player.bonusCrit = 1 },
-      { title:'☄️ 直伤', desc:'敌人 -12 HP', apply:()=>gameState.enemy.hp = Math.max(0, gameState.enemy.hp - 12) },
-      { title:'⭐ EXP', desc:'额外 +20 EXP', apply:()=>gainExp(20) }
-    ];
-    return shuffle(options).slice(0, 3);
+  function updateUI(delta){
+    document.getElementById('score').textContent = `得分: ${score} ${delta ? '(' + (delta>0?'+':'') + delta + ')' : ''}`;
+    document.getElementById('remaining').textContent = `剩余题目: ${queue.length}`;
+    const pg = document.getElementById('progress');
+    pg.max = qs.length || 1; pg.value = (qs.length - queue.length);
   }
 
-  function applyReward(reward){
-    reward.apply();
-    logGame(`🎁 盲盒：${reward.title}`);
-    $('rewardArea').innerHTML = '<div class="muted small">奖励已领取，继续挑战。</div>';
-    renderGame();
-  }
+  function nextQ(){
+    const qa = document.getElementById('question-area');
+    qa.innerHTML = ''; updateUI(0);
+    if (queue.length === 0) return finishQuiz();
 
-  function grantRoundReward(){
-    gameState.score += 12 + gameState.round * 3;
-    const heal = 8 + gameState.round * 2;
-    gameState.player.hp = Math.min(gameState.player.hpMax, gameState.player.hp + heal);
-    logGame(`🏆 击败 ${gameState.enemy.name}，恢复 ${heal} HP。`);
-  }
-
-  function logGame(text){
-    gameState.logs.push(text);
-    if (gameState.logs.length > 50) gameState.logs.shift();
-  }
-
-  function renderQuestionBlock({mount, q, submitLabel, onResult}){
+    const q = queue.shift();
     const div = document.createElement('div'); div.className = 'question';
-    div.innerHTML = `<p><strong>${String(q.question||'').replace(/\r?\n/g,'<br/>')}</strong></p>`;
+    div.innerHTML = `<p><strong>${(q.question||'').replace(/\r?\n/g,'<br/>')}</strong></p>`;
 
     if (q.image){
       const img = document.createElement('img');
@@ -766,336 +463,179 @@ document.addEventListener('DOMContentLoaded', () => {
       div.appendChild(img);
     }
 
-    const opts = document.createElement('div');
-    if (q.type === 'text') {
-      opts.innerHTML = '<input type="text" class="answerText" placeholder="请输入答案…"/>';
+    const opts = document.createElement('div'); opts.className = 'options';
+    if (q.type === 'text'){
+      opts.innerHTML = '<input type="text" id="txtAns" placeholder="请输入答案…"/>';
     } else {
-      const letters = Array.from({length: CONFIG.MAX_OPTS}, (_,i)=>String.fromCharCode(65+i));
-      shuffle(letters.filter(l => q[l])).forEach(l => {
+      const letters = Array.from({length:MAX_OPTS}, (_,i)=>String.fromCharCode(65+i));
+      shuffle(letters.filter(l=>q[l])).forEach(l=>{
         const inp = document.createElement('input');
-        inp.type = (q.type === 'checkbox' ? 'checkbox' : 'radio');
-        inp.name = 'opt'; inp.value = l; inp.id = 'opt_' + Math.random().toString(36).slice(2);
-        const lbl = document.createElement('label'); lbl.className = 'option-label'; lbl.htmlFor = inp.id;
-        lbl.appendChild(inp); lbl.append(' ' + q[l]);
-        opts.appendChild(lbl);
+        inp.type = (q.type==='checkbox'?'checkbox':'radio');
+        inp.name='opt'; inp.value=l; inp.id='opt_'+l;
+        const lbl=document.createElement('label'); lbl.className='option-label'; lbl.htmlFor='opt_'+l;
+        lbl.appendChild(inp); lbl.append(' '+q[l]); opts.appendChild(lbl);
       });
     }
     div.appendChild(opts);
 
-    const fb = document.createElement('div'); fb.className = 'feedback'; div.appendChild(fb);
-    const submit = button(submitLabel, 'primary', () => {
-      const ua = collectUserAnswer(div, q.type);
+    const fb = document.createElement('div'); fb.className='feedback'; div.appendChild(fb);
+    const sb = document.createElement('button'); sb.className='btn'; sb.textContent='提交';
+    sb.onclick = () => {
+      let ua=[];
+      if (q.type==='text'){
+        ua = document.getElementById('txtAns').value.split(',').map(s=>s.trim()).filter(Boolean);
+      } else {
+        ua = Array.from(div.querySelectorAll('input[name="opt"]:checked')).map(i=>i.value);
+      }
       if (!ua.length) return alert('请选择或输入答案');
-      const judged = judgeAnswer(q, ua);
-      const answerHtml = buildAnswerHtml(q);
-      const explainHtml = q.explain ? `<br><span style="font-weight:normal">${String(q.explain)}</span>` : '';
-      const ret = onResult({isCorrect: judged, answerHtml, explainHtml});
-      fb.innerHTML = ret.feedbackHtml;
-      submit.disabled = true;
-      const nextBtn = button(ret.nextLabel, 'good', ret.onNext);
-      div.appendChild(nextBtn);
-    });
-    div.appendChild(submit);
-    mount.appendChild(div);
-  }
 
-  function collectUserAnswer(scope, type){
-    if (type === 'text') {
-      return Array.from(scope.querySelectorAll('.answerText'))
-        .map(x => x.value.trim())
-        .join(',')
-        .split(',')
-        .map(s => s.trim())
-        .filter(Boolean);
-    }
-    return Array.from(scope.querySelectorAll('input[name="opt"]:checked')).map(i => i.value);
-  }
+      let isC=false;
+      if (q.type==='text'){
+        const lows = ua.map(s=>s.toLowerCase());
+        const ansList = String(q.answer||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+        isC = lows.some(v=>ansList.includes(v));
+      } else if (q.type === 'checkbox') {
+        const uaA = ua.map(s=>s.toUpperCase()).sort().join(',');
+        const caA = String(q.answer||'').split(',').map(s=>s.trim().toUpperCase()).filter(Boolean).sort().join(',');
+        isC = uaA === caA;
+      } else {
+        const accept = String(q.answer||'').split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
+        isC = ua.length === 1 && accept.includes(ua[0].toUpperCase());
+      }
 
-  function judgeAnswer(q, ua){
-    if (q.type === 'text') {
-      const lows = ua.map(s => s.toLowerCase());
-      const ans = String(q.answer||'').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-      return lows.some(v => ans.includes(v));
-    }
-    if (q.type === 'checkbox') {
-      const u = ua.map(s => s.toUpperCase()).sort().join(',');
-      const c = String(q.answer||'').split(',').map(s => s.trim().toUpperCase()).filter(Boolean).sort().join(',');
-      return u === c;
-    }
-    const accept = String(q.answer||'').split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
-    return ua.length === 1 && accept.includes(ua[0].toUpperCase());
-  }
+      const allAnsHtml = (() => {
+        if (q.type === 'text') {
+          return String(q.answer||'').split(',').map(s=>s.trim()).filter(Boolean).map((s,i)=>`${i+1}. ${s}`).join('<br>');
+        }
+        return String(q.answer||'').split(',').map(s=>s.trim().toUpperCase()).filter(Boolean).map(letter => q[letter] || letter).join('<br>');
+      })();
 
-  function buildAnswerHtml(q){
-    if (q.type === 'text') {
-      return String(q.answer||'').split(',').map(s=>s.trim()).filter(Boolean).map((s,i)=>`${i+1}. ${s}`).join('<br>');
-    }
-    return String(q.answer||'').split(',').map(s=>s.trim().toUpperCase()).filter(Boolean).map(letter => q[letter] || letter).join('<br>');
-  }
+      let delta;
+      if (currentMode === 'practice') {
+        delta = isC ? (q.attempt?1:2) : (q.attempt?-2:-1);
+      } else {
+        delta = isC ? 2 : -1;
+      }
+      score += delta; if (isC) correct++; else wrong++;
 
-  async function finishSession(kind){
-    const sec = Math.floor((Date.now() - chapterStart) / 1000);
-    let sessionScore = score;
-    let sessionCorrect = correct;
-    let sessionWrong = wrong;
-    let accuracy = 0;
-    let modeLabel = currentMode;
+      const explainLine = q.explain ? `<br><span style="font-weight:normal">${String(q.explain)}</span>` : '';
+      fb.innerHTML = isC
+        ? `正确! ${delta>0?'+':''}${delta}<br>正确答案：<br>${allAnsHtml}${explainLine}`
+        : `错误! ${delta}<br>正确答案：<br>${allAnsHtml}${explainLine}`;
 
-    if (kind === 'game' && gameState) {
-      sessionCorrect = gameState.correct;
-      sessionWrong = gameState.wrong;
-      sessionScore = gameState.score + gameState.correct * 2 - gameState.wrong;
-      accuracy = gameState.answered ? gameState.correct / gameState.answered : 0;
-      modeLabel = gameState.mode;
-    } else {
-      accuracy = (sessionCorrect + sessionWrong) ? sessionCorrect / (sessionCorrect + sessionWrong) : 0;
-    }
+      updateUI(delta);
+      sb.disabled = true;
+      const nb = document.createElement('button'); nb.className='btn secondary'; nb.textContent = '下一题'; nb.onclick = nextQ;
+      div.appendChild(nb);
 
-    const sessionExp = Math.max(8, Math.round(sessionCorrect * 6 + accuracy * 20 + (kind === 'game' ? 18 : 10)));
-    lastFinishExp = sessionExp;
-    gainExp(sessionExp);
-    updateRowCompletion(currentRow, sessionCorrect, sessionWrong);
-    saveProfile();
-    refreshProfileBar();
-
-    const payload = {
-      book: extractBookCode(),
-      quizId: currentRow?.[chapterKey] || '-',
-      chapterLabel: currentRow?.[labelKey] || '',
-      name: profile.name || user,
-      studentId: profile.studentId || studentId,
-      score: sessionScore,
-      correct: sessionCorrect,
-      wrong: sessionWrong,
-      time: sec,
-      mode: modeLabel,
-      level: profile.level,
-      exp: profile.exp,
-      accuracy: Math.round(accuracy * 100),
-      recommendation: pendingRecommendation || '',
-      event: kind === 'game' ? 'game_finish' : 'quiz_finish'
+      if (!isC && currentMode === 'practice'){
+        q.attempt++;
+        for (let i=0;i<2;i++) queue.splice(Math.floor(Math.random()*(queue.length+1)),0,{...q});
+      }
     };
+    div.appendChild(sb);
 
-    $('finish-msg').textContent = `恭喜 ${profile.name || user}，本次${kind === 'game' ? '游戏' : '练习'}完成！`;
-    $('stats').textContent = `得分: ${sessionScore}，答对 ${sessionCorrect} 题，答错 ${sessionWrong} 题，正确率 ${Math.round(accuracy*100)}%`;
-    $('finishLevel').textContent = `Lv.${profile.level}`;
-    $('finishExp').textContent = `+${sessionExp}`;
-    const nextRec = getRecommendedRow();
-    $('finishNext').textContent = nextRec ? (nextRec.row[chapterKey] || '继续推进') : '继续当前';
-    $('submit-status').textContent = '正在上传成绩与等级…';
-    showPage('finish');
-    renderFinishControls(nextRec);
-
-    try {
-      await submitPayload(payload);
-      $('submit-status').textContent = '✅ 成绩与等级资料已提交';
-    } catch (e) {
-      console.error(e);
-      fallbackSubmit(payload);
-      $('submit-status').textContent = '⚠️ 可能未成功上传，请检查 Apps Script 与 Sheet 权限';
-    }
-
-    gameState = null;
+    document.getElementById('question-area').appendChild(div);
   }
 
-  function renderFinishControls(nextRec){
-    const ctrl = $('controls'); ctrl.innerHTML = '';
-    ctrl.append(
-      button('返回章节选择', 'ghost', showChapterList),
-      button('再来一次', 'secondary', () => currentMode === 'battle' ? startGame(currentRow, 'battle') : startQuiz(currentRow, currentMode || 'normal'))
-    );
-    if (nextRec) ctrl.append(button('做推荐下一章', 'warn', () => startQuiz(nextRec.row, 'smart')));
-  }
+  async function finishQuiz(){
+    document.getElementById('quiz').style.display='none';
+    document.getElementById('finish').style.display='block';
 
-  function gainExp(n){
-    profile.exp += n;
-    profile.level = calcLevel(profile.exp);
-    const levelInfo = getLevelInfo(profile.exp);
-    profile.expInLevel = levelInfo.expInLevel;
-    profile.nextLevelExp = levelInfo.nextLevelExp;
-  }
+    const accuracy = qs.length ? (correct / qs.length) : 0;
+    const accuracyPct = Math.round(accuracy * 100);
+    let battleMsg = '';
+    let exp = 10;
 
-  function calcLevel(exp){
-    return Math.floor((exp || 0) / CONFIG.LEVEL_BASE_EXP) + 1;
-  }
-
-  function getLevelInfo(exp){
-    const level = calcLevel(exp);
-    const floorExp = (level - 1) * CONFIG.LEVEL_BASE_EXP;
-    return { level, expInLevel: exp - floorExp, nextLevelExp: CONFIG.LEVEL_BASE_EXP };
-  }
-
-  function updateRowCompletion(row, sessionCorrect, sessionWrong){
-    const key = getRowStatKey(row);
-    const stat = getRowStat(row);
-    stat.completed = stat.completed || (sessionCorrect >= 5 && sessionCorrect >= sessionWrong);
-    profile.chapterStats[key] = stat;
-  }
-
-  function recordQuestionResult(row, isCorrect){
-    const key = getRowStatKey(row);
-    const stat = getRowStat(row);
-    stat.answered = (stat.answered || 0) + 1;
-    if (isCorrect) {
-      stat.correct = (stat.correct || 0) + 1;
-      stat.wrongStreak = 0;
-      profile.currentStreak = (profile.currentStreak || 0) + 1;
-      profile.bestStreak = Math.max(profile.bestStreak || 0, profile.currentStreak);
+    if (currentMode === 'monster') {
+      const kill = accuracy >= 0.70;
+      const perfect = accuracy >= 0.90;
+      if (kill) exp += 20;
+      if (perfect) exp += 30;
+      const res = await jsonp({ action:'updateMonster', book, name:user, monsterId:buildMonsterId(currentRow), accuracy: accuracyPct });
+      if (res.ok) {
+        progressState = res.progress;
+        battleMsg = kill
+          ? (perfect ? `💀 Perfect Kill！小怪已死亡，30天后复活。` : `💀 小怪已击败，进入复活倒数。`)
+          : `⚠️ 未达到击杀门槛（需要 ≥70%），小怪仍存活。`;
+      }
+    } else if (currentMode === 'boss') {
+      if (accuracy >= 0.90) exp += 150;
+      else if (accuracy >= 0.70) exp += 60;
+      else if (accuracy >= 0.50) exp += 25;
+      const res = await jsonp({ action:'updateBoss', book, name:user, bab:String(currentBab), accuracy: accuracyPct });
+      if (res.ok) {
+        progressState = res.progress;
+        const b = res.boss || {};
+        if (b.killedNow) battleMsg = '👹 Boss 已被击杀！本 Bab 所有小怪也同步死亡一次。';
+        else battleMsg = `⚔️ Boss 仍存活，当前 HP：${Number(b.hp||0)}/100。需要继续挑战。`;
+      }
     } else {
-      stat.wrong = (stat.wrong || 0) + 1;
-      stat.wrongStreak = (stat.wrongStreak || 0) + 1;
-      profile.currentStreak = 0;
+      battleMsg = accuracy >= 70 ? '📘 练习完成，已记录成绩。' : '📘 练习完成。';
     }
-    stat.last5 = stat.last5 || [];
-    stat.last5.push(!!isCorrect);
-    while (stat.last5.length > 5) stat.last5.shift();
-    profile.chapterStats[key] = stat;
-    saveProfile();
+
+    currentExpGain = exp;
+    const expRes = await jsonp({ action:'addExp', book, name:user, amount:String(exp), reason:currentMode });
+    if (expRes.ok) progressState = expRes.progress;
+    updateHeader();
+
+    document.getElementById('finish-msg').textContent = `恭喜 ${user}，本次完成！`;
+    document.getElementById('stats').textContent = `模式：${modeLabel(currentMode)}｜得分: ${score}｜正确率: ${accuracyPct}%｜答对 ${correct} 题｜答错 ${wrong} 题｜EXP +${exp}`;
+    document.getElementById('battle-result').textContent = battleMsg;
+    document.getElementById('submit-status').textContent = '正在上传成绩…';
+
+    submitScore();
+
+    const ctrl=document.getElementById('controls'); ctrl.innerHTML='';
+    const back=document.createElement('button'); back.className='btn';
+    back.textContent='返回章节选择';
+    back.onclick=()=>{ document.getElementById('finish').style.display='none'; showChapterList(); };
+    ctrl.appendChild(back);
   }
 
-  function getRowStat(row){
-    const key = getRowStatKey(row);
-    profile.chapterStats = profile.chapterStats || {};
-    if (!profile.chapterStats[key]) profile.chapterStats[key] = { answered:0, correct:0, wrong:0, completed:false, wrongStreak:0, last5:[] };
-    return profile.chapterStats[key];
+  function modeLabel(m){
+    return m === 'practice' ? '普通练习' : (m === 'monster' ? '小怪挑战' : 'Boss挑战');
   }
 
-  function getRowStatKey(row){
-    return `${row?.[chapterKey] || ''}__${row?.[labelKey] || ''}`.trim();
-  }
-
-  function getDifficultyLabel(row){
-    const stat = getRowStat(row);
-    const acc = stat.answered ? stat.correct / stat.answered : null;
-    const chapterNo = getMainChapterNo(row[chapterKey]) || profile.level;
-    const effective = chapterNo + (profile.level >= 8 ? 1 : 0) + (acc !== null && acc > 0.85 ? 1 : 0);
-    if (effective <= 2) return '基础';
-    if (effective <= 5) return '进阶';
-    if (effective <= 8) return '挑战';
-    return '高手';
-  }
-
-  function getMainChapterNo(chapterStr){
-    if (!chapterStr) return null;
-    const m = String(chapterStr).match(/(?:^|\s)(?:Chp|Bab)\s*([0-9]+)/i);
-    return m ? parseInt(m[1], 10) : null;
-  }
-
-  function getRowTitle(row){
-    return `${row[chapterKey] || ''}${row[labelKey] ? ' — ' + row[labelKey] : ''}`.trim();
-  }
-
-  async function getQuestionsForRow(row){
-    const url = row[sheetKey];
-    if (questionCache.has(url)) return questionCache.get(url);
-    const list = await parseCsvSource(url);
-    questionCache.set(url, list);
-    return list;
-  }
-
-  function parseCsvSource(source){
-    return new Promise((resolve, reject) => {
-      Papa.parse(source, {
-        download:true, header:true, skipEmptyLines:true,
-        complete(res){
-          const data = (res.data || []).map(raw => {
-            const r = {};
-            Object.entries(raw || {}).forEach(([k,v]) => r[String(k).trim()] = v?.toString()?.trim?.() ?? v);
-            return r;
-          });
-          resolve(data);
-        },
-        error: reject
-      });
-    });
-  }
-
-  async function submitPayload(payload){
-    const res = await fetch(CONFIG.RESULTS_URL, { method:'POST', body:new URLSearchParams(payload) });
-    if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
-  }
-
-  function fallbackSubmit(payload){
-    const form = $('postForm');
-    Array.from(form.querySelectorAll('input')).forEach(inp => inp.value = payload[inp.name] ?? '');
+  function submitScore(){
+    const form = document.getElementById('postForm');
+    const payload = {
+      book,
+      quizId: currentMode === 'boss' ? `Bab ${currentBab} Boss` : currentRow[chapterKey],
+      name: user,
+      score,
+      correct,
+      wrong,
+      time: Math.floor((Date.now()-chapterStart)/1000),
+      mode: currentMode,
+      expGained: currentExpGain
+    };
+    form.book.value    = payload.book;
+    form.quizId.value  = payload.quizId;
+    form.name.value    = payload.name;
+    form.score.value   = payload.score;
+    form.correct.value = payload.correct;
+    form.wrong.value   = payload.wrong;
+    form.time.value    = payload.time;
+    form.mode.value    = payload.mode;
+    form.expGained.value = payload.expGained;
     form.submit();
+    document.getElementById('submit-status').textContent = '✅ 成绩已提交（若 Apps Script 权限正确）';
   }
 
-  function extractBookCode(){
-    const m = document.title.match(/(F\d+\s+(?:SC|ACC)|MM)/i);
-    return m ? m[1].toUpperCase() : document.title.trim().toUpperCase();
+  function daysLeft(ts){
+    const diff = Number(ts) - Date.now();
+    const days = Math.ceil(diff / (1000*60*60*24));
+    return `${Math.max(days,1)}天`;
   }
 
-  function saveProfile(){
-    const li = getLevelInfo(profile.exp || 0);
-    profile.level = li.level;
-    profile.expInLevel = li.expInLevel;
-    profile.nextLevelExp = li.nextLevelExp;
-    localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(profile));
+  function escapeHtml(s){
+    return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
 
-  function loadProfile(){
-    try {
-      const raw = localStorage.getItem(CONFIG.STORAGE_KEY);
-      const p = raw ? JSON.parse(raw) : {};
-      return {
-        name: p.name || '',
-        studentId: p.studentId || '',
-        exp: Number(p.exp || 0),
-        level: Number(p.level || 1),
-        chapterStats: p.chapterStats || {},
-        bestStreak: Number(p.bestStreak || 0),
-        currentStreak: Number(p.currentStreak || 0),
-        expInLevel: 0,
-        nextLevelExp: CONFIG.LEVEL_BASE_EXP
-      };
-    } catch {
-      return { name:'', studentId:'', exp:0, level:1, chapterStats:{}, bestStreak:0, currentStreak:0, expInLevel:0, nextLevelExp:CONFIG.LEVEL_BASE_EXP };
-    }
-  }
-
-  function logout(){
-    user = '';
-    studentId = '';
-    profile = { name:'', studentId:'', exp:0, level:1, chapterStats:{}, bestStreak:0, currentStreak:0, expInLevel:0, nextLevelExp:CONFIG.LEVEL_BASE_EXP };
-    localStorage.removeItem(CONFIG.STORAGE_KEY);
-    $('username').value = '';
-    $('studentId').value = '';
-    $('monthlyPassword').value = '';
-    $('loginStatus').textContent = '系统会先检查月密码，再读取学生资料与等级。';
-    showPage('welcome');
-  }
-
-  function formatYM(d){
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-  }
-  function stripTime(d){
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  }
-  function parseDateLoose(v){
-    if (!v) return null;
-    const s = String(v).trim();
-    if (!s) return null;
-    if (/^\d{4}-\d{2}$/.test(s)) return new Date(s + '-01');
-    const d = new Date(s);
-    return isNaN(d) ? null : d;
-  }
-  function percent(a,b){
-    return !b ? '0%' : `${Math.round(a/b*100)}%`;
-  }
   function shuffle(a){
-    const arr = [...a];
-    for (let i=arr.length-1;i>0;i--){
-      const j = Math.floor(Math.random()*(i+1));
-      [arr[i],arr[j]] = [arr[j],arr[i]];
-    }
-    return arr;
-  }
-  function button(text, cls, fn){
-    const b = document.createElement('button'); b.type='button'; b.textContent = text; b.className = cls; b.onclick = fn; return b;
-  }
-  function createPill(text){
-    const span = document.createElement('span'); span.className = 'pill'; span.textContent = text; return span;
+    for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
   }
 });
 </script>
