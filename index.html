@@ -537,10 +537,10 @@ document.addEventListener('DOMContentLoaded', () => {
       })();
 
       let delta;
-      if (currentMode === 'practice') {
-        delta = isC ? (q.attempt?1:2) : (q.attempt?-2:-1);
-      } else {
+      if (currentMode === 'boss') {
         delta = isC ? 2 : -1;
+      } else {
+        delta = isC ? (q.attempt?1:2) : (q.attempt?-2:-1);
       }
       score += delta; if (isC) correct++; else wrong++;
 
@@ -554,9 +554,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const nb = document.createElement('button'); nb.className='btn secondary'; nb.textContent = '下一题'; nb.onclick = nextQ;
       div.appendChild(nb);
 
-      if (!isC && currentMode === 'practice'){
+      if (!isC && currentMode !== 'boss'){
         q.attempt++;
-        for (let i=0;i<2;i++) queue.splice(Math.floor(Math.random()*(queue.length+1)),0,{...q});
+        for (let i=0;i<2;i++) {
+          queue.splice(Math.floor(Math.random()*(queue.length+1)),0,{...q});
+        }
       }
     };
     div.appendChild(sb);
