@@ -6,289 +6,759 @@
   <title>纪老师 F1 SC 精英训练网</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; max-width:900px; margin:auto; text-align:center; }
-    #welcome,#chapters,#quiz,#finish { margin:20px; }
-    #chapters,#quiz,#finish { display:none; }
-
-    /* 悬浮返回按钮 */
-    .floating-back { position: sticky; top:10px; left:0; text-align:left; z-index:5; }
-    .floating-back button{
-      padding:10px 14px; border-radius:999px; border:0; background:#0aa; color:#fff; cursor:pointer;
-      box-shadow:0 6px 14px rgba(0,0,0,.12);
+    :root{
+      --bg:#f6fbff; --card:#fff; --line:#dbe8f2; --text:#163043; --muted:#5f7485;
+      --primary:#0b88c9; --primary2:#0e5f8f; --good:#118847; --bad:#d64545; --warn:#c47a00;
+      --shadow:0 10px 26px rgba(10,49,77,.08);
     }
-
-    /* 章节页 */
-    #chapters h2 { margin:10px 0 6px; }
-    .group { text-align:left; margin:18px 0; }
-    .group-title { font-weight:bold; font-size:18px; margin:8px 0; }
-    .item {
-      display:flex; justify-content:space-between; align-items:center; gap:12px;
-      border:1px solid #e6e6e6; border-radius:12px; padding:10px 14px; margin:8px 0; background:#fff;
+    *{box-sizing:border-box}
+    body{font-family:Arial,sans-serif; background:var(--bg); color:var(--text); max-width:1100px; margin:auto; padding:14px; text-align:center;}
+    h1,h2,h3,p{margin:0}
+    button{cursor:pointer; border:0; border-radius:12px; padding:10px 14px; font-weight:700}
+    button.primary{background:var(--primary); color:#fff}
+    button.secondary{background:#edf7fd; color:var(--primary2); border:1px solid #c6e6f7}
+    button.dark{background:#111; color:#fff}
+    button.good{background:var(--good); color:#fff}
+    button.warn{background:#fff3dc; color:#8a5b00; border:1px solid #f2d18a}
+    button.ghost{background:#fff; color:var(--text); border:1px solid var(--line)}
+    button:disabled{opacity:.55; cursor:not-allowed}
+    input, select{width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:12px; font-size:15px; background:#fff}
+    progress{width:100%; height:18px}
+    img{max-width:100%; margin:10px 0; border:2px solid #d7e6f0; border-radius:10px}
+    .hidden{display:none !important}
+    .page{display:none; margin:14px 0}
+    .page.active{display:block}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow)}
+    .panel{padding:16px}
+    .stack{display:flex; flex-direction:column; gap:12px}
+    .row{display:flex; gap:12px; align-items:center}
+    .row.wrap{flex-wrap:wrap}
+    .grow{flex:1}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+    .tiny{font-size:11px}
+    .pill{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#eef8fe; border:1px solid #d2ebfa; color:var(--primary2); font-size:12px; font-weight:700}
+    .danger{color:var(--bad)} .success{color:var(--good)} .warning{color:var(--warn)}
+    .floating-back{position:sticky; top:8px; z-index:10; text-align:left; margin-bottom:8px}
+    .floating-back button{background:#0aa; color:#fff; box-shadow:0 6px 14px rgba(0,0,0,.12)}
+    #welcome .card{max-width:680px; margin:0 auto}
+    .login-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; text-align:left}
+    .login-grid .full{grid-column:1 / -1}
+    .box-title{font-size:22px; font-weight:800; margin-bottom:6px}
+    .sub{margin-bottom:8px; color:var(--muted)}
+    .group{margin:18px 0; text-align:left}
+    .group-title{font-weight:800; font-size:18px; margin:8px 0 10px}
+    .chapter-card{display:flex; justify-content:space-between; gap:12px; align-items:center; border:1px solid var(--line); border-radius:16px; padding:14px; margin:10px 0; background:#fff}
+    .chapter-meta{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+    .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+    .topbar{display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:10px}
+    .question{padding:6px 2px 16px; text-align:left}
+    .question p{line-height:1.6}
+    .option-label{display:block; margin:8px 0; cursor:pointer; padding:8px 10px; border:1px solid #e3eef5; border-radius:10px; background:#fcfeff}
+    .feedback{font-weight:700; margin:12px 0; line-height:1.6}
+    input[type="radio"],input[type="checkbox"]{transform:scale(1.15); margin-right:8px}
+    .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
+    .stat{padding:14px; border-radius:16px; border:1px solid var(--line); background:#fff}
+    .stat strong{display:block; font-size:22px; margin-top:6px}
+    .profilebar{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 14px; margin-bottom:14px; text-align:left}
+    .profile-left,.profile-right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .game-grid{display:grid; grid-template-columns:1.15fr .85fr; gap:14px; text-align:left}
+    .battle-board{padding:16px}
+    .fighter{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px; border:1px solid var(--line); border-radius:16px; background:#fbfeff; margin-bottom:10px}
+    .hpbar{width:100%; height:16px; background:#eaf1f6; border-radius:999px; overflow:hidden; margin-top:8px}
+    .hpbar > div{height:100%; background:linear-gradient(90deg,#14a95a,#7fd968)}
+    .enemy .hpbar > div{background:linear-gradient(90deg,#ff7b7b,#ffb16d)}
+    .game-log{height:200px; overflow:auto; padding:10px; border:1px solid var(--line); border-radius:14px; background:#fff}
+    .log-item{padding:6px 0; border-bottom:1px dashed #e4eef5; font-size:14px}
+    .reward-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+    .reward-card{border:1px solid var(--line); border-radius:14px; padding:12px; background:#fff; cursor:pointer; text-align:center}
+    .reward-card:hover{transform:translateY(-1px)}
+    .finish-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:12px}
+    .kbd{font-family:monospace; background:#f2f7fb; padding:2px 6px; border-radius:6px}
+    .tip{padding:12px; border:1px solid #dbeaf5; background:#fafdff; border-radius:14px; text-align:left}
+    @media (max-width:860px){
+      .login-grid,.stat-grid,.game-grid,.finish-grid{grid-template-columns:1fr}
+      .chapter-card,.topbar,.profilebar{flex-direction:column; align-items:flex-start}
+      .actions{justify-content:flex-start}
     }
-    .item .title { text-align:left; }
-    .meta { color:#666; font-size:12px; margin-top:4px; }
-    .go {
-      padding:8px 12px; border-radius:10px; border:1px solid #333;
-      background:#000; color:#fff; cursor:pointer;
-    }
-
-    /* 测验区 */
-    #topbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
-    #topbar .left { display:flex; align-items:center; gap:8px; }
-    #topbar button { padding:6px 10px; }
-    progress { width:100%; height:18px; }
-    .question { text-align:left; margin:15px 0; padding-left:6px; }
-    .option-label { display:block; margin:6px 0; cursor:pointer; }
-    .feedback { font-weight:bold; margin:12px 0; }
-    input[type="text"] { width:100%; padding:6px; margin:6px 0; }
-    input[type="radio"],input[type="checkbox"] { transform:scale(1.2); margin-right:8px; }
-    img { max-width:100%; margin:10px 0; border:2px solid #ccc; }
-    #submit-status { margin-top:10px; font-size:14px; }
   </style>
 </head>
 <body>
-
-  <!-- 1) 欢迎页（标题=网页title） -->
-  <div id="welcome">
-    <h2 id="welcomeTitle"></h2>
-    <input type="text" id="username" placeholder="姓名 / Name"/>
-    <button id="startBtn" type="button">开始 / Start</button>
+  <div id="welcome" class="page active">
+    <div class="card panel stack">
+      <div>
+        <div class="box-title" id="welcomeTitle"></div>
+        <p class="sub">保留原本刷题功能，并加入月密码、Level、智能推荐、打怪与盲盒奖励。</p>
+      </div>
+      <div class="tip small">
+        <div><strong>月密码表建议字段：</strong><span class="kbd">month,password,start,end,enabled,note</span></div>
+        <div><strong>month</strong> 可填 <span class="kbd">2026-04</span>；也可直接用 <span class="kbd">start/end</span> 控制有效期。你可以一次填好几个月。</div>
+      </div>
+      <div class="login-grid">
+        <div>
+          <label>姓名 / Name</label>
+          <input type="text" id="username" placeholder="例如：Amy"/>
+        </div>
+        <div>
+          <label>学生ID（可空）</label>
+          <input type="text" id="studentId" placeholder="例如：S001"/>
+        </div>
+        <div class="full">
+          <label>本月密码 / Monthly Password</label>
+          <input type="password" id="monthlyPassword" placeholder="输入本月密码"/>
+        </div>
+      </div>
+      <div class="row wrap">
+        <button class="primary" id="startBtn" type="button">开始 / Start</button>
+        <span class="muted small" id="loginStatus">系统会先检查月密码，再读取学生资料与等级。</span>
+      </div>
+    </div>
   </div>
 
-  <!-- 2) 章节页 -->
-  <div id="chapters">
-    <div class="floating-back">
-      <button type="button">🏠 回到章节选择</button>
+  <div id="chapters" class="page">
+    <div class="floating-back"><button type="button" id="logoutBtn">🚪 退出登录</button></div>
+    <div class="card profilebar">
+      <div class="profile-left">
+        <span class="pill" id="profileName">学生：-</span>
+        <span class="pill" id="profileLevel">Lv.1</span>
+        <span class="pill" id="profileExp">EXP 0 / 120</span>
+        <span class="pill" id="profileStreak">连胜 0</span>
+      </div>
+      <div class="profile-right">
+        <button class="warn" id="smartPracticeBtn" type="button">🧠 智能练习</button>
+        <button class="secondary" id="smartGameBtn" type="button">🎮 智能打怪</button>
+      </div>
     </div>
-    <h2>请选择章节 / Select Chapter</h2>
+
+    <div class="card panel stack" style="margin-bottom:14px; text-align:left;">
+      <div class="row wrap" style="justify-content:space-between;">
+        <div>
+          <h2>请选择章节 / Select Chapter</h2>
+          <p class="muted small">系统会根据 Level、最近正确率、错题记录，推荐更适合学生当前程度的练习与游戏。</p>
+        </div>
+        <div class="pill" id="recommendText">推荐：读取中…</div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat"><div class="muted small">总作答</div><strong id="sumAnswered">0</strong></div>
+        <div class="stat"><div class="muted small">总答对</div><strong id="sumCorrect">0</strong></div>
+        <div class="stat"><div class="muted small">平均正确率</div><strong id="sumAccuracy">0%</strong></div>
+        <div class="stat"><div class="muted small">已完成章节</div><strong id="sumCompleted">0</strong></div>
+      </div>
+    </div>
+
     <div id="chapterWrap"></div>
   </div>
 
-  <!-- 3) 测验页 -->
-  <div id="quiz">
-    <div class="floating-back">
-      <button type="button" id="backToListTop">🏠 回到章节选择</button>
+  <div id="quiz" class="page">
+    <div class="floating-back"><button type="button" id="backToListTop">🏠 回到章节选择</button></div>
+    <div class="card panel">
+      <div class="topbar">
+        <div class="row wrap">
+          <span id="quiz-title" style="font-weight:800;"></span>
+          <span class="pill" id="quizModeBadge">普通模式</span>
+        </div>
+        <div class="row wrap">
+          <span id="score">得分: 0</span>
+          <span id="remaining">剩余题目: 0</span>
+        </div>
+      </div>
+      <progress id="progress" value="0" max="0"></progress>
+      <div id="question-area"></div>
     </div>
-    <div id="topbar">
-      <div class="left"><span id="quiz-title" style="font-weight:bold;"></span></div>
-      <div class="right">
-        <span id="score">得分: 0</span>
-        <span id="remaining" style="margin-left:10px;">剩余题目: 0</span>
+  </div>
+
+  <div id="game" class="page">
+    <div class="floating-back"><button type="button" id="backFromGame">🏠 回到章节选择</button></div>
+    <div class="game-grid">
+      <div class="card battle-board stack">
+        <div class="row wrap" style="justify-content:space-between; align-items:flex-start;">
+          <div>
+            <h2 id="gameTitle">游戏模式</h2>
+            <p class="muted small" id="gameSubtitle">答题驱动攻击，Level 越高敌人越强。</p>
+          </div>
+          <span class="pill" id="gameModeBadge">Battle</span>
+        </div>
+
+        <div class="fighter">
+          <div class="grow">
+            <div><strong id="playerName">玩家</strong> · <span id="playerAtk">ATK 5</span> · <span id="playerShield">Shield 0</span></div>
+            <div class="hpbar"><div id="playerHpBar" style="width:100%"></div></div>
+            <div class="small muted" id="playerHpText">HP 100 / 100</div>
+          </div>
+          <div class="pill" id="playerLvTag">Lv.1</div>
+        </div>
+
+        <div class="fighter enemy">
+          <div class="grow">
+            <div><strong id="enemyName">怪物</strong> · <span id="enemyAtk">ATK 4</span></div>
+            <div class="hpbar"><div id="enemyHpBar" style="width:100%"></div></div>
+            <div class="small muted" id="enemyHpText">HP 80 / 80</div>
+          </div>
+          <div class="pill" id="roundTag">Round 1</div>
+        </div>
+
+        <progress id="gameProgress" value="0" max="0"></progress>
+        <div id="gameQuestionArea"></div>
+      </div>
+
+      <div class="stack">
+        <div class="card panel stack">
+          <h3>战斗记录</h3>
+          <div class="game-log" id="gameLog"></div>
+        </div>
+        <div class="card panel stack">
+          <div class="row wrap" style="justify-content:space-between;">
+            <h3>盲盒奖励</h3>
+            <span class="pill" id="rewardInfo">答对 3 题可抽一次</span>
+          </div>
+          <div id="rewardArea" class="reward-grid"></div>
+        </div>
       </div>
     </div>
-    <progress id="progress" value="0" max="0"></progress>
-    <div id="question-area"></div>
   </div>
 
-  <!-- 4) 完成页 -->
-  <div id="finish">
-    <div class="floating-back">
-      <button type="button" id="backFromFinish">🏠 回到章节选择</button>
+  <div id="finish" class="page">
+    <div class="floating-back"><button type="button" id="backFromFinish">🏠 回到章节选择</button></div>
+    <div class="card panel stack">
+      <div>
+        <h3 id="finish-msg"></h3>
+        <p id="stats" class="muted" style="margin-top:8px"></p>
+        <p id="submit-status" class="small" style="margin-top:8px"></p>
+      </div>
+      <div class="finish-grid">
+        <div class="stat"><div class="muted small">新 Level</div><strong id="finishLevel">1</strong></div>
+        <div class="stat"><div class="muted small">本次 EXP</div><strong id="finishExp">0</strong></div>
+        <div class="stat"><div class="muted small">推荐下一步</div><strong id="finishNext">继续当前</strong></div>
+      </div>
+      <div id="controls" class="row wrap"></div>
     </div>
-    <h3 id="finish-msg"></h3>
-    <p id="stats"></p>
-    <p id="submit-status"></p>
-    <div id="controls"></div>
   </div>
 
-  <!-- 成绩上传：隐藏表单（用来兜底提交） -->
   <iframe name="postFrame" style="display:none;"></iframe>
-  <form id="postForm"
-        action="https://script.google.com/macros/s/AKfycbwOadAK74XfAiOFkokD6zlQ8kQZTFDI0_SVWwMSSRgT8mwuoCac2VSAIj8X07L7NVVF/exec"
-        method="post" target="postFrame" style="display:none;">
+  <form id="postForm" action="https://script.google.com/macros/s/AKfycbwOadAK74XfAiOFkokD6zlQ8kQZTFDI0_SVWwMSSRgT8mwuoCac2VSAIj8X07L7NVVF/exec" method="post" target="postFrame" style="display:none;">
     <input name="book"/>
-    <input name="quizId"/><input name="name"/><input name="score"/>
-    <input name="correct"/><input name="wrong"/><input name="time"/>
+    <input name="quizId"/><input name="name"/><input name="studentId"/>
+    <input name="score"/><input name="correct"/><input name="wrong"/><input name="time"/>
+    <input name="mode"/><input name="level"/><input name="exp"/><input name="accuracy"/>
+    <input name="event"/><input name="chapterLabel"/><input name="recommendation"/>
   </form>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  // 欢迎页标题 = 网页 title
-  document.getElementById('welcomeTitle').textContent = document.title;
+  const CONFIG = {
+    CHAPTERS_SOURCE: 'Chapters.csv',
+    PASSWORD_SOURCE: 'Passwords.csv', // 可改成 Google Sheet 的 CSV 链接
+    REQUIRE_MONTHLY_PASSWORD: true,
+    LEVEL_BASE_EXP: 120,
+    MAX_OPTS: 15,
+    RESULTS_URL: document.getElementById('postForm').action,
+    STORAGE_KEY: 'kee_quiz_profile_v4_' + location.pathname.replace(/[^a-z0-9]/gi,'_').toLowerCase(),
+    PASSWORD_REQUIRED_HINT: '本月密码错误或未到生效日期'
+  };
+
+  const $ = id => document.getElementById(id);
+  const pages = ['welcome','chapters','quiz','game','finish'];
+  const today = new Date();
+  $('welcomeTitle').textContent = document.title;
 
   let user = '';
+  let studentId = '';
   let rows = [];
   let chapterKey, labelKey, sheetKey;
-
-  // 分组：Chp/Bab 号 -> rows；OTHERS 放最后
   let groups = new Map();
   let groupOrder = [];
-
   let currentRow = null;
+  let currentMode = 'normal';
+  let quizQuestions = [];
+  let queue = [];
+  let score = 0, correct = 0, wrong = 0, chapterStart = 0;
+  let passwords = [];
+  let countCache = new Map();
+  let questionCache = new Map();
+  let lastFinishExp = 0;
+  let pendingRecommendation = null;
 
-  // 测验状态
-  let qs = [], queue = [], score = 0, correct = 0, wrong = 0;
-  let chapterStart = 0;
-  const MAX_OPTS = 15;
+  let profile = loadProfile();
+  let gameState = null;
 
-  const countCache = new Map();                // sheetUrl -> 题数缓存
-  const SCRIPT_URL = document.getElementById('postForm').action;
+  bindEvents();
+  refreshProfileBar();
 
-  // 开始按钮
-  document.getElementById('startBtn').onclick = () => {
-    const nm = document.getElementById('username').value.trim();
+  function bindEvents(){
+    $('startBtn').onclick = handleStart;
+    $('logoutBtn').onclick = logout;
+    $('backToListTop').onclick = showChapterList;
+    $('backFromFinish').onclick = () => { showChapterList(); };
+    $('backFromGame').onclick = showChapterList;
+    $('smartPracticeBtn').onclick = startSmartPractice;
+    $('smartGameBtn').onclick = startSmartGame;
+  }
+
+  async function handleStart(){
+    const nm = $('username').value.trim();
+    const sid = $('studentId').value.trim();
+    const pass = $('monthlyPassword').value.trim();
     if (!nm) return alert('请输入姓名');
+
+    $('loginStatus').textContent = '正在验证月密码与读取章节…';
     user = nm;
-    document.getElementById('welcome').style.display = 'none';
-    loadChapters();
-  };
-  document.getElementById('backToListTop').onclick = showChapterList;
-  document.getElementById('backFromFinish').onclick = () => {
-    document.getElementById('finish').style.display = 'none';
+    studentId = sid;
+    profile.name = nm;
+    profile.studentId = sid;
+
+    const ok = await validateMonthlyPassword(pass);
+    if (!ok) {
+      $('loginStatus').textContent = CONFIG.PASSWORD_REQUIRED_HINT;
+      return alert(CONFIG.PASSWORD_REQUIRED_HINT);
+    }
+
+    saveProfile();
+    await loadChapters();
+    refreshProfileBar();
     showChapterList();
-  };
-
-  // 载入 Chapters.csv
-  function loadChapters() {
-    Papa.parse('Chapters.csv', {
-      download:true, header:true, skipEmptyLines:true,
-      complete(res) {
-        rows = res.data.map(raw => {
-          const r={}; Object.entries(raw).forEach(([k,v])=>r[k.trim()]=v?.toString()?.trim() ?? v);
-          return r;
-        });
-        if (!rows.length) return alert('请检查 Chapters.csv');
-
-        const keys = Object.keys(rows[0]);
-        chapterKey = keys.find(k=>k.toLowerCase()==='chapter');
-        labelKey   = keys.find(k=>k.toLowerCase()==='label');
-        sheetKey   = keys.find(k=>k.toLowerCase()==='sheet');
-        if (!chapterKey || !labelKey || !sheetKey)
-          return alert('Chapters.csv 需要列: chapter, label, sheet');
-
-        buildGroupsByCsvOrder(rows);
-        showChapterList();
-      }
-    });
   }
 
-  // 提取第一个 Chp/Bab 的数字（允许 0），否则返回 null
-  function getMainChapterNo(chapterStr){
-    if (!chapterStr) return null;
-    const m = String(chapterStr).match(/(?:^|\s)(?:Chp|Bab)\s*([0-9]+)/i);
-    return m ? parseInt(m[1],10) : null;
+  async function validateMonthlyPassword(inputPassword){
+    if (!CONFIG.REQUIRE_MONTHLY_PASSWORD) return true;
+    try {
+      passwords = await parseCsvSource(CONFIG.PASSWORD_SOURCE);
+    } catch (e) {
+      console.warn('Password source load failed, fallback to allow login.', e);
+      $('loginStatus').textContent = '⚠️ 密码表读取失败，已暂时放行';
+      return true;
+    }
+    if (!passwords.length) return true;
+    const applicable = passwords.filter(isPasswordRowActive);
+    if (!applicable.length) return true;
+    return applicable.some(r => String(r.password || '').trim() === inputPassword);
   }
 
-  // 按 CSV 顺序建组；无编号为 OTHERS
+  function isPasswordRowActive(row){
+    const enabled = String(row.enabled ?? 'true').trim().toLowerCase();
+    if (['0','false','no','n'].includes(enabled)) return false;
+    const ym = formatYM(today);
+    const rowMonth = String(row.month || '').trim();
+    const rowPass = String(row.password || '').trim();
+    if (!rowPass) return false;
+
+    const start = parseDateLoose(row.start);
+    const end = parseDateLoose(row.end);
+    if (start || end) {
+      const t = stripTime(today).getTime();
+      if (start && t < stripTime(start).getTime()) return false;
+      if (end && t > stripTime(end).getTime()) return false;
+      return true;
+    }
+    return rowMonth === '*' || rowMonth === ym;
+  }
+
+  async function loadChapters(){
+    rows = await parseCsvSource(CONFIG.CHAPTERS_SOURCE);
+    if (!rows.length) throw new Error('Chapters.csv is empty');
+    const keys = Object.keys(rows[0]);
+    chapterKey = keys.find(k => k.toLowerCase() === 'chapter');
+    labelKey   = keys.find(k => k.toLowerCase() === 'label');
+    sheetKey   = keys.find(k => k.toLowerCase() === 'sheet');
+    if (!chapterKey || !labelKey || !sheetKey) throw new Error('Chapters.csv 需要列: chapter, label, sheet');
+    buildGroupsByCsvOrder(rows);
+  }
+
   function buildGroupsByCsvOrder(list){
     groups = new Map();
     groupOrder = [];
     const OTHERS = 'OTHERS';
-
     for (const r of list){
       const no = getMainChapterNo(r[chapterKey]);
       const key = (no === null ? OTHERS : no);
-
       if (!groups.has(key)) {
         groups.set(key, []);
         if (key !== OTHERS) groupOrder.push(key);
       }
       groups.get(key).push(r);
     }
-
     const ordered = new Map();
     for (const k of groupOrder) ordered.set(k, groups.get(k));
     if (groups.has(OTHERS)) ordered.set(OTHERS, groups.get(OTHERS));
     groups = ordered;
   }
 
-  // 渲染章节列表
-  function showChapterList(){
-    document.getElementById('quiz').style.display = 'none';
-    document.getElementById('finish').style.display = 'none';
+  function showPage(id){
+    pages.forEach(p => $(p).classList.toggle('active', p === id));
+  }
 
-    const wrap = document.getElementById('chapterWrap');
+  function showChapterList(){
+    renderChapterList();
+    refreshProfileBar();
+    showPage('chapters');
+  }
+
+  function renderChapterList(){
+    const wrap = $('chapterWrap');
     wrap.innerHTML = '';
+    updateSummaryStats();
+    const rec = getRecommendedRow();
+    $('recommendText').textContent = rec ? `推荐：${getRowTitle(rec.row)}（${rec.reason}）` : '推荐：先从任意章节开始';
 
     groups.forEach((arr, key) => {
       const g = document.createElement('div'); g.className = 'group';
-
       const title = document.createElement('div'); title.className = 'group-title';
       title.textContent = (key === 'OTHERS') ? '其他 Others' : `Chp/Bab ${key}`;
       g.appendChild(title);
 
       arr.forEach(row => {
-        const item = document.createElement('div'); item.className = 'item';
+        const item = document.createElement('div'); item.className = 'chapter-card';
+        const left = document.createElement('div'); left.className = 'grow';
+        const t = document.createElement('div'); t.style.fontWeight = '800'; t.textContent = getRowTitle(row);
+        const meta = document.createElement('div'); meta.className = 'chapter-meta';
+        const countPill = createPill('题数：加载中…');
+        const stat = getRowStat(row);
+        const accPill = createPill(`正确率：${percent(stat.correct, stat.answered)}`);
+        const recPill = createPill(`建议难度：${getDifficultyLabel(row)}`);
+        const donePill = createPill(stat.completed ? '已完成' : '未完成');
+        meta.append(countPill, accPill, recPill, donePill);
+        left.append(t, meta);
 
-        const left = document.createElement('div'); left.className = 'title';
-        const t = document.createElement('div'); t.style.fontWeight = 'bold';
-        t.textContent = `${row[chapterKey]} ${row[labelKey] ? '— ' + row[labelKey] : ''}`;
+        const actions = document.createElement('div'); actions.className = 'actions';
+        const go = button('开始', 'dark', () => startQuiz(row, 'normal'));
+        const battle = button('⚔️ 打怪', 'secondary', () => startGame(row, 'battle'));
+        const smart = button('🧠 推荐', 'warn', () => startRecommendedForRow(row));
+        actions.append(go, battle, smart);
 
-        const meta = document.createElement('div'); meta.className = 'meta';
-        meta.textContent = '题数：加载中…';
-        left.appendChild(t); left.appendChild(meta);
-
-        const go = document.createElement('button'); go.className = 'go'; go.textContent = '开始';
-        go.onclick = () => startQuiz(row);
-
-        item.append(left, go); g.appendChild(item);
+        item.append(left, actions); g.appendChild(item);
 
         const sheet = row[sheetKey];
         if (countCache.has(sheet)) {
-          meta.textContent = `题数：${countCache.get(sheet)}`;
+          countPill.textContent = `题数：${countCache.get(sheet)}`;
         } else {
-          Papa.parse(sheet, {
-            download:true, header:true, skipEmptyLines:true,
-            complete(r2){
-              const cnt = r2.data.filter(q => q.question && String(q.question).trim()).length;
-              countCache.set(sheet, cnt);
-              meta.textContent = `题数：${cnt}`;
-            },
-            error(){ meta.textContent = '题数：获取失败'; }
-          });
+          parseCsvSource(sheet).then(data => {
+            const cnt = data.filter(q => q.question && String(q.question).trim()).length;
+            countCache.set(sheet, cnt);
+            countPill.textContent = `题数：${cnt}`;
+          }).catch(() => countPill.textContent = '题数：获取失败');
         }
       });
-
       wrap.appendChild(g);
     });
-
-    document.getElementById('chapters').style.display = 'block';
   }
 
-  // 进入某一章开始测验
-  function startQuiz(row){
+  function updateSummaryStats(){
+    const all = Object.values(profile.chapterStats || {});
+    const answered = all.reduce((s,a)=>s+(a.answered||0),0);
+    const corr = all.reduce((s,a)=>s+(a.correct||0),0);
+    const completed = all.filter(a => a.completed).length;
+    $('sumAnswered').textContent = answered;
+    $('sumCorrect').textContent = corr;
+    $('sumAccuracy').textContent = percent(corr, answered);
+    $('sumCompleted').textContent = completed;
+  }
+
+  function refreshProfileBar(){
+    profile.level = calcLevel(profile.exp);
+    $('profileName').textContent = `学生：${profile.name || user || '-'}`;
+    $('profileLevel').textContent = `Lv.${profile.level}`;
+    $('profileExp').textContent = `EXP ${profile.expInLevel} / ${profile.nextLevelExp}`;
+    $('profileStreak').textContent = `连胜 ${profile.bestStreak || 0}`;
+  }
+
+  function startRecommendedForRow(row){
+    const stat = getRowStat(row);
+    const mode = (profile.level >= 3 && stat.answered >= 5) ? 'battle' : 'normal';
+    if (mode === 'battle') startGame(row, 'battle');
+    else startQuiz(row, 'normal');
+  }
+
+  function startSmartPractice(){
+    const rec = getRecommendedRow();
+    if (!rec) return alert('还没有可练习的章节');
+    pendingRecommendation = rec.reason;
+    startQuiz(rec.row, 'smart');
+  }
+
+  function startSmartGame(){
+    const rec = getRecommendedRow();
+    if (!rec) return alert('还没有可练习的章节');
+    pendingRecommendation = rec.reason;
+    startGame(rec.row, 'battle');
+  }
+
+  function getRecommendedRow(){
+    if (!rows.length) return null;
+    const withScore = rows.map(row => ({ row, score: getAdaptiveRowScore(row) }));
+    withScore.sort((a,b) => b.score.total - a.score.total);
+    const best = withScore[0];
+    if (!best) return null;
+    return { row: best.row, reason: best.score.reason };
+  }
+
+  function getAdaptiveRowScore(row){
+    const stat = getRowStat(row);
+    const chapterNo = getMainChapterNo(row[chapterKey]);
+    const chapterDifficulty = chapterNo === null ? profile.level : Math.max(1, chapterNo);
+    const targetDifficulty = Math.min(12, Math.max(1, Math.ceil(profile.level / 2)));
+    const diffGap = Math.abs(chapterDifficulty - targetDifficulty);
+    const accuracy = stat.answered ? stat.correct / stat.answered : 0;
+    const needFixBonus = stat.wrongStreak > 0 ? 22 : 0;
+    const recentWrongBonus = (stat.last5 || []).filter(x => !x).length * 6;
+    const notStartedBonus = stat.answered === 0 ? 18 : 0;
+    const mediumAccuracyBonus = stat.answered >= 5 && accuracy >= 0.45 && accuracy <= 0.8 ? 18 : 0;
+    const tooEasyPenalty = accuracy > 0.9 && stat.answered >= 8 ? -12 : 0;
+    const total = 100 - diffGap * 12 + needFixBonus + recentWrongBonus + notStartedBonus + mediumAccuracyBonus + tooEasyPenalty;
+    let reason = '按等级推荐';
+    if (needFixBonus) reason = '最近错题较多，适合复习';
+    else if (notStartedBonus) reason = '还没开始，适合作为新练习';
+    else if (mediumAccuracyBonus) reason = '难度刚好，适合继续推进';
+    else if (tooEasyPenalty) reason = '这章较简单，可继续往上';
+    return { total, reason };
+  }
+
+  async function startQuiz(row, mode='normal'){
     currentRow = row;
-    document.getElementById('chapters').style.display = 'none';
-    document.getElementById('quiz-title').textContent =
-      `${row[chapterKey]}${row[labelKey] ? ' — ' + row[labelKey] : ''}`;
-
-    score = correct = wrong = 0;
+    currentMode = mode;
     chapterStart = Date.now();
+    score = 0; correct = 0; wrong = 0;
+    $('quiz-title').textContent = getRowTitle(row);
+    $('quizModeBadge').textContent = mode === 'smart' ? '智能练习' : '普通模式';
+    const list = await getQuestionsForRow(row);
+    quizQuestions = list.map(q => ({...q, attempt:0}));
+    queue = shuffle(quizQuestions.filter(q => q.question && String(q.question).trim()));
+    updateQuizUI(0);
+    showPage('quiz');
+    nextQuizQuestion();
+  }
 
-    Papa.parse(row[sheetKey], {
-      download:true, header:true, skipEmptyLines:true,
-      complete(res){
-        qs = res.data.map(q => ({...q, attempt:0}));
-        queue = shuffle(qs.filter(q => q.question && String(q.question).trim()));
-        document.getElementById('quiz').style.display = 'block';
-        updateUI(0);
-        nextQ();
-      },
-      error(){
-        alert('这个章节的题目加载失败了，请检查表格链接。');
-        showChapterList();
+  function updateQuizUI(delta){
+    $('score').textContent = `得分: ${score}${delta ? ` (${delta>0?'+':''}${delta})` : ''}`;
+    $('remaining').textContent = `剩余题目: ${queue.length}`;
+    $('progress').max = quizQuestions.length || 1;
+    $('progress').value = (quizQuestions.length - queue.length);
+  }
+
+  function nextQuizQuestion(){
+    const qa = $('question-area'); qa.innerHTML = ''; updateQuizUI(0);
+    if (queue.length === 0) return finishSession('quiz');
+    const q = queue.shift();
+    renderQuestionBlock({
+      mount: qa,
+      q,
+      submitLabel: '提交',
+      onResult: ({isCorrect, answerHtml, explainHtml}) => {
+        const delta = isCorrect ? (q.attempt ? 1 : 2) : (q.attempt ? -2 : -1);
+        score += delta;
+        if (isCorrect) correct++; else wrong++;
+        if (!isCorrect){
+          q.attempt++;
+          for (let i=0;i<2;i++) queue.splice(Math.floor(Math.random()*(queue.length+1)),0,{...q});
+        }
+        updateQuizUI(delta);
+        recordQuestionResult(currentRow, isCorrect, q);
+        return {
+          feedbackHtml: `${isCorrect ? '正确!' : '错误!'} ${delta>0?'+':''}${delta}<br>正确答案：<br>${answerHtml}${explainHtml}`,
+          nextLabel: '下一题',
+          onNext: nextQuizQuestion
+        };
       }
     });
   }
 
-  // 更新顶部 UI
-  function updateUI(delta){
-    document.getElementById('score').textContent =
-      `得分: ${score} ${delta ? '(' + (delta>0?'+':'') + delta + ')' : ''}`;
-    document.getElementById('remaining').textContent = `剩余题目: ${queue.length}`;
-    const pg = document.getElementById('progress');
-    pg.max = qs.length; pg.value = qs.length - queue.length;
+  async function startGame(row, mode='battle'){
+    currentRow = row;
+    currentMode = mode;
+    chapterStart = Date.now();
+    const allQs = await getQuestionsForRow(row);
+    const adaptive = buildAdaptiveGameQuestions(allQs, row);
+    const baseLevel = Math.max(1, profile.level);
+    gameState = {
+      row,
+      mode,
+      score: 0,
+      correct: 0,
+      wrong: 0,
+      round: 1,
+      answered: 0,
+      correctStreak: 0,
+      rewardReady: false,
+      queuedRewards: [],
+      usedQuestions: [],
+      queue: adaptive,
+      player: {
+        hpMax: 100 + baseLevel * 8,
+        hp: 100 + baseLevel * 8,
+        atk: 5 + Math.floor(baseLevel * 1.3),
+        shield: 0,
+        bonusCrit: 0
+      },
+      enemy: makeEnemy(baseLevel, row, 1),
+      logs: []
+    };
+    $('gameTitle').textContent = getRowTitle(row);
+    $('gameSubtitle').textContent = `系统会优先抽取适合当前 Level 的题，并在答错时回推复习。`;
+    $('gameModeBadge').textContent = 'Battle + Blind Box';
+    $('rewardArea').innerHTML = '<div class="muted small">暂未解锁，连续答对 3 题可抽盲盒。</div>';
+    renderGame();
+    showPage('game');
+    nextGameTurn();
   }
 
-  // 出下一题
-  function nextQ(){
-    const qa = document.getElementById('question-area');
-    qa.innerHTML = ''; updateUI(0);
-    if (queue.length === 0) return finishQuiz();
+  function buildAdaptiveGameQuestions(allQs, row){
+    const stat = getRowStat(row);
+    const targetPool = allQs.filter(q => q.question && String(q.question).trim());
+    const repeatBoost = stat.wrongStreak > 0 ? 4 : 2;
+    let mixed = shuffle(targetPool.map(q => ({...q, weight:1})));
+    if (profile.level >= 4) mixed = mixed.concat(shuffle(targetPool.slice(0, Math.min(repeatBoost, targetPool.length)).map(q => ({...q, weight:2}))));
+    return shuffle(mixed).slice(0, Math.max(8, Math.min(22, 8 + profile.level * 2)));
+  }
 
-    const q = queue.shift();
+  function makeEnemy(level, row, round){
+    const chapterNo = getMainChapterNo(row[chapterKey]) || level;
+    const difficulty = Math.max(level, Math.ceil(chapterNo * 0.9));
+    const hpMax = 55 + difficulty * 15 + round * 16;
+    return {
+      name: round % 5 === 0 ? 'Boss' : round % 3 === 0 ? 'Elite' : 'Monster',
+      hpMax,
+      hp: hpMax,
+      atk: 4 + Math.floor(difficulty * 1.15) + Math.floor(round / 2)
+    };
+  }
+
+  function renderGame(){
+    const g = gameState;
+    $('playerName').textContent = profile.name || user || '玩家';
+    $('playerAtk').textContent = `ATK ${g.player.atk}`;
+    $('playerShield').textContent = `Shield ${g.player.shield}`;
+    $('playerHpText').textContent = `HP ${g.player.hp} / ${g.player.hpMax}`;
+    $('playerHpBar').style.width = `${Math.max(0, g.player.hp / g.player.hpMax * 100)}%`;
+    $('playerLvTag').textContent = `Lv.${profile.level}`;
+
+    $('enemyName').textContent = `${g.enemy.name}`;
+    $('enemyAtk').textContent = `ATK ${g.enemy.atk}`;
+    $('enemyHpText').textContent = `HP ${g.enemy.hp} / ${g.enemy.hpMax}`;
+    $('enemyHpBar').style.width = `${Math.max(0, g.enemy.hp / g.enemy.hpMax * 100)}%`;
+    $('roundTag').textContent = `Round ${g.round}`;
+
+    $('gameProgress').max = Math.max(1, g.usedQuestions.length + g.queue.length);
+    $('gameProgress').value = g.usedQuestions.length;
+    $('rewardInfo').textContent = g.rewardReady ? '可抽盲盒一次' : `再答对 ${Math.max(0, 3 - g.correctStreak)} 题可抽`;
+
+    const logBox = $('gameLog');
+    logBox.innerHTML = g.logs.map(line => `<div class="log-item">${line}</div>`).join('') || '<div class="muted small">战斗开始！</div>';
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+
+  function nextGameTurn(){
+    if (!gameState) return;
+    if (gameState.player.hp <= 0) return finishSession('game');
+    if (gameState.enemy.hp <= 0) {
+      grantRoundReward();
+      gameState.round++;
+      if (gameState.round > 5 || gameState.queue.length === 0) return finishSession('game');
+      gameState.enemy = makeEnemy(profile.level, currentRow, gameState.round);
+      logGame(`🎯 进入第 ${gameState.round} 回合，出现 ${gameState.enemy.name}！`);
+      renderGame();
+    }
+
+    const mount = $('gameQuestionArea');
+    mount.innerHTML = '';
+    if (!gameState.queue.length) return finishSession('game');
+    const q = gameState.queue.shift();
+    gameState.usedQuestions.push(q);
+    renderGame();
+
+    renderQuestionBlock({
+      mount,
+      q,
+      submitLabel: '攻击 / 提交',
+      onResult: ({isCorrect, answerHtml, explainHtml}) => {
+        gameState.answered++;
+        let feedback = '';
+        if (isCorrect) {
+          gameState.correct++;
+          gameState.correctStreak++;
+          const crit = gameState.correctStreak >= 3 ? 2 + gameState.player.bonusCrit : 1 + gameState.player.bonusCrit;
+          const damage = gameState.player.atk * crit;
+          gameState.enemy.hp = Math.max(0, gameState.enemy.hp - damage);
+          feedback = `✅ 命中！造成 ${damage} 点伤害。<br>正确答案：<br>${answerHtml}${explainHtml}`;
+          logGame(`✅ 答对，造成 ${damage} 伤害。`);
+          if (gameState.correctStreak % 3 === 0) {
+            gameState.rewardReady = true;
+            gameState.queuedRewards = makeBlindBoxes();
+          }
+        } else {
+          gameState.wrong++;
+          gameState.correctStreak = 0;
+          let incoming = gameState.enemy.atk;
+          if (gameState.player.shield > 0) {
+            const block = Math.min(gameState.player.shield, incoming);
+            gameState.player.shield -= block;
+            incoming -= block;
+          }
+          gameState.player.hp = Math.max(0, gameState.player.hp - incoming);
+          feedback = `❌ 被反击！你受到 ${incoming} 点伤害。<br>正确答案：<br>${answerHtml}${explainHtml}`;
+          logGame(`❌ 答错，受到 ${incoming} 伤害。`);
+          gameState.queue.splice(Math.floor(Math.random()*(gameState.queue.length+1)), 0, {...q});
+        }
+        recordQuestionResult(currentRow, isCorrect, q);
+        renderGame();
+        return {
+          feedbackHtml: feedback,
+          nextLabel: gameState.rewardReady ? '抽盲盒' : '下一回合',
+          onNext: gameState.rewardReady ? openRewardChoices : nextGameTurn
+        };
+      }
+    });
+  }
+
+  function openRewardChoices(){
+    if (!gameState || !gameState.rewardReady) return nextGameTurn();
+    const area = $('rewardArea');
+    area.innerHTML = '';
+    gameState.queuedRewards.forEach(reward => {
+      const card = document.createElement('button');
+      card.className = 'reward-card';
+      card.innerHTML = `<strong>${reward.title}</strong><div class="small muted" style="margin-top:6px">${reward.desc}</div>`;
+      card.onclick = () => {
+        applyReward(reward);
+        gameState.rewardReady = false;
+        gameState.queuedRewards = [];
+        nextGameTurn();
+      };
+      area.appendChild(card);
+    });
+  }
+
+  function makeBlindBoxes(){
+    const options = [
+      { title:'⚔️ 攻击强化', desc:'ATK +2', apply:()=>gameState.player.atk += 2 },
+      { title:'🛡️ 护盾', desc:'Shield +8', apply:()=>gameState.player.shield += 8 },
+      { title:'❤️ 回复', desc:'HP +15', apply:()=>gameState.player.hp = Math.min(gameState.player.hpMax, gameState.player.hp + 15) },
+      { title:'💥 暴击', desc:'下一击 x2', apply:()=>gameState.player.bonusCrit = 1 },
+      { title:'☄️ 直伤', desc:'敌人 -12 HP', apply:()=>gameState.enemy.hp = Math.max(0, gameState.enemy.hp - 12) },
+      { title:'⭐ EXP', desc:'额外 +20 EXP', apply:()=>gainExp(20) }
+    ];
+    return shuffle(options).slice(0, 3);
+  }
+
+  function applyReward(reward){
+    reward.apply();
+    logGame(`🎁 盲盒：${reward.title}`);
+    $('rewardArea').innerHTML = '<div class="muted small">奖励已领取，继续挑战。</div>';
+    renderGame();
+  }
+
+  function grantRoundReward(){
+    gameState.score += 12 + gameState.round * 3;
+    const heal = 8 + gameState.round * 2;
+    gameState.player.hp = Math.min(gameState.player.hpMax, gameState.player.hp + heal);
+    logGame(`🏆 击败 ${gameState.enemy.name}，恢复 ${heal} HP。`);
+  }
+
+  function logGame(text){
+    gameState.logs.push(text);
+    if (gameState.logs.length > 50) gameState.logs.shift();
+  }
+
+  function renderQuestionBlock({mount, q, submitLabel, onResult}){
     const div = document.createElement('div'); div.className = 'question';
-    div.innerHTML = `<p><strong>${(q.question||'').replace(/\r?\n/g,'<br/>')}</strong></p>`;
+    div.innerHTML = `<p><strong>${String(q.question||'').replace(/\r?\n/g,'<br/>')}</strong></p>`;
 
     if (q.image){
       const img = document.createElement('img');
@@ -296,174 +766,336 @@ document.addEventListener('DOMContentLoaded', () => {
       div.appendChild(img);
     }
 
-    const opts = document.createElement('div'); opts.className = 'options';
-    if (q.type === 'text'){
-      opts.innerHTML = '<input type="text" id="txtAns" placeholder="请输入答案…"/>';
+    const opts = document.createElement('div');
+    if (q.type === 'text') {
+      opts.innerHTML = '<input type="text" class="answerText" placeholder="请输入答案…"/>';
     } else {
-      const letters = Array.from({length:MAX_OPTS}, (_,i)=>String.fromCharCode(65+i));
-      shuffle(letters.filter(l=>q[l])).forEach(l=>{
+      const letters = Array.from({length: CONFIG.MAX_OPTS}, (_,i)=>String.fromCharCode(65+i));
+      shuffle(letters.filter(l => q[l])).forEach(l => {
         const inp = document.createElement('input');
-        inp.type = (q.type==='checkbox'?'checkbox':'radio');
-        inp.name='opt'; inp.value=l; inp.id='opt_'+l;
-        const lbl=document.createElement('label'); lbl.className='option-label'; lbl.htmlFor='opt_'+l;
-        lbl.appendChild(inp); lbl.append(' '+q[l]); opts.appendChild(lbl);
+        inp.type = (q.type === 'checkbox' ? 'checkbox' : 'radio');
+        inp.name = 'opt'; inp.value = l; inp.id = 'opt_' + Math.random().toString(36).slice(2);
+        const lbl = document.createElement('label'); lbl.className = 'option-label'; lbl.htmlFor = inp.id;
+        lbl.appendChild(inp); lbl.append(' ' + q[l]);
+        opts.appendChild(lbl);
       });
     }
     div.appendChild(opts);
 
-    const fb = document.createElement('div'); fb.className='feedback'; div.appendChild(fb);
-
-    const sb = document.createElement('button'); sb.textContent='提交';
-    sb.onclick = () => {
-      // 1) 收集作答
-      let ua=[];
-      if (q.type==='text'){
-        ua = document.getElementById('txtAns').value
-               .split(',')
-               .map(s=>s.trim())
-               .filter(Boolean);
-      } else {
-        ua = Array.from(div.querySelectorAll('input[name="opt"]:checked'))
-               .map(i=>i.value);
-      }
+    const fb = document.createElement('div'); fb.className = 'feedback'; div.appendChild(fb);
+    const submit = button(submitLabel, 'primary', () => {
+      const ua = collectUserAnswer(div, q.type);
       if (!ua.length) return alert('请选择或输入答案');
-
-      // 2) 判分逻辑
-      let isC=false;
-      if (q.type==='text'){
-        const lows = ua.map(s=>s.toLowerCase());
-        const ansList = String(q.answer||'')
-                          .split(',')
-                          .map(s=>s.trim().toLowerCase())
-                          .filter(Boolean);
-        isC = lows.some(v=>ansList.includes(v));
-
-      } else if (q.type === 'checkbox') {
-        const uaA = ua.map(s=>s.toUpperCase()).sort().join(',');
-        const caA = String(q.answer||'')
-                      .split(',')
-                      .map(s=>s.trim().toUpperCase())
-                      .filter(Boolean)
-                      .sort()
-                      .join(',');
-        isC = uaA === caA;
-
-      } else { // radio：允许多个正确答案，任一命中即可
-        const accept = String(q.answer||'')
-                         .split(',')
-                         .map(s=>s.trim().toUpperCase())
-                         .filter(Boolean);
-        isC = ua.length === 1 && accept.includes(ua[0].toUpperCase());
-      }
-
-      // 统一生成正确答案 HTML（逐行，不显示 A/B/C/D）
-      const allAnsHtml = (() => {
-        if (q.type === 'text') {
-          return String(q.answer||'')
-                   .split(',')
-                   .map(s=>s.trim())
-                   .filter(Boolean)
-                   .map((s,i)=>`${i+1}. ${s}`)
-                   .join('<br>');
-        }
-        return String(q.answer||'')
-                 .split(',')
-                 .map(s=>s.trim().toUpperCase())
-                 .filter(Boolean)
-                 .map(letter => q[letter] || letter)
-                 .join('<br>');
-      })();
-
-      // 3) 计分
-      const delta = isC ? (q.attempt?1:2) : (q.attempt?-2:-1);
-      score += delta; if (isC) correct++; else wrong++;
-
-      const explainLine = q.explain
-        ? `<br><span style="font-weight:normal">${String(q.explain)}</span>` : '';
-
-      // 4) 反馈：答对 / 答错都显示正确答案
-      fb.innerHTML = isC
-        ? `正确! +${delta}<br>正确答案：<br>${allAnsHtml}${explainLine}`
-        : `错误! ${delta}<br>正确答案：<br>${allAnsHtml}${explainLine}`;
-
-      updateUI(delta);
-      sb.disabled = true;
-      const nb = document.createElement('button'); nb.textContent = '下一题'; nb.onclick = nextQ;
-      div.appendChild(nb);
-
-      // 5) 错题回推
-      if (!isC){
-        q.attempt++;
-        for (let i=0;i<2;i++){
-          queue.splice(Math.floor(Math.random()*(queue.length+1)),0,{...q});
-        }
-      }
-    };
-    div.appendChild(sb);
-
-    document.getElementById('question-area').appendChild(div);
+      const judged = judgeAnswer(q, ua);
+      const answerHtml = buildAnswerHtml(q);
+      const explainHtml = q.explain ? `<br><span style="font-weight:normal">${String(q.explain)}</span>` : '';
+      const ret = onResult({isCorrect: judged, answerHtml, explainHtml});
+      fb.innerHTML = ret.feedbackHtml;
+      submit.disabled = true;
+      const nextBtn = button(ret.nextLabel, 'good', ret.onNext);
+      div.appendChild(nextBtn);
+    });
+    div.appendChild(submit);
+    mount.appendChild(div);
   }
 
-  // 交卷 & 上传成绩
-  async function finishQuiz(){
-    document.getElementById('quiz').style.display='none';
-    document.getElementById('finish').style.display='block';
-    document.getElementById('finish-msg').textContent = `恭喜 ${user}，你学会这个章节了！`;
-    document.getElementById('stats').textContent =
-      `得分: ${score}，答对 ${correct} 题，答错 ${wrong} 题`;
-    document.getElementById('submit-status').textContent = '正在上传成绩…';
+  function collectUserAnswer(scope, type){
+    if (type === 'text') {
+      return Array.from(scope.querySelectorAll('.answerText'))
+        .map(x => x.value.trim())
+        .join(',')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+    return Array.from(scope.querySelectorAll('input[name="opt"]:checked')).map(i => i.value);
+  }
 
-    // 从 title 抓 F? SC / F? ACC 作为 book
-    const m = document.title.match(/(F\d+\s+(?:SC|ACC))/i);
-    const book = m ? m[1].toUpperCase() : 'DEFAULT';
+  function judgeAnswer(q, ua){
+    if (q.type === 'text') {
+      const lows = ua.map(s => s.toLowerCase());
+      const ans = String(q.answer||'').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+      return lows.some(v => ans.includes(v));
+    }
+    if (q.type === 'checkbox') {
+      const u = ua.map(s => s.toUpperCase()).sort().join(',');
+      const c = String(q.answer||'').split(',').map(s => s.trim().toUpperCase()).filter(Boolean).sort().join(',');
+      return u === c;
+    }
+    const accept = String(q.answer||'').split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+    return ua.length === 1 && accept.includes(ua[0].toUpperCase());
+  }
+
+  function buildAnswerHtml(q){
+    if (q.type === 'text') {
+      return String(q.answer||'').split(',').map(s=>s.trim()).filter(Boolean).map((s,i)=>`${i+1}. ${s}`).join('<br>');
+    }
+    return String(q.answer||'').split(',').map(s=>s.trim().toUpperCase()).filter(Boolean).map(letter => q[letter] || letter).join('<br>');
+  }
+
+  async function finishSession(kind){
+    const sec = Math.floor((Date.now() - chapterStart) / 1000);
+    let sessionScore = score;
+    let sessionCorrect = correct;
+    let sessionWrong = wrong;
+    let accuracy = 0;
+    let modeLabel = currentMode;
+
+    if (kind === 'game' && gameState) {
+      sessionCorrect = gameState.correct;
+      sessionWrong = gameState.wrong;
+      sessionScore = gameState.score + gameState.correct * 2 - gameState.wrong;
+      accuracy = gameState.answered ? gameState.correct / gameState.answered : 0;
+      modeLabel = gameState.mode;
+    } else {
+      accuracy = (sessionCorrect + sessionWrong) ? sessionCorrect / (sessionCorrect + sessionWrong) : 0;
+    }
+
+    const sessionExp = Math.max(8, Math.round(sessionCorrect * 6 + accuracy * 20 + (kind === 'game' ? 18 : 10)));
+    lastFinishExp = sessionExp;
+    gainExp(sessionExp);
+    updateRowCompletion(currentRow, sessionCorrect, sessionWrong);
+    saveProfile();
+    refreshProfileBar();
 
     const payload = {
-      book: book,
-      quizId: currentRow[chapterKey],
-      name: user,
-      score: score,
-      correct: correct,
-      wrong: wrong,
-      time: Math.floor((Date.now()-chapterStart)/1000)
+      book: extractBookCode(),
+      quizId: currentRow?.[chapterKey] || '-',
+      chapterLabel: currentRow?.[labelKey] || '',
+      name: profile.name || user,
+      studentId: profile.studentId || studentId,
+      score: sessionScore,
+      correct: sessionCorrect,
+      wrong: sessionWrong,
+      time: sec,
+      mode: modeLabel,
+      level: profile.level,
+      exp: profile.exp,
+      accuracy: Math.round(accuracy * 100),
+      recommendation: pendingRecommendation || '',
+      event: kind === 'game' ? 'game_finish' : 'quiz_finish'
     };
 
+    $('finish-msg').textContent = `恭喜 ${profile.name || user}，本次${kind === 'game' ? '游戏' : '练习'}完成！`;
+    $('stats').textContent = `得分: ${sessionScore}，答对 ${sessionCorrect} 题，答错 ${sessionWrong} 题，正确率 ${Math.round(accuracy*100)}%`;
+    $('finishLevel').textContent = `Lv.${profile.level}`;
+    $('finishExp').textContent = `+${sessionExp}`;
+    const nextRec = getRecommendedRow();
+    $('finishNext').textContent = nextRec ? (nextRec.row[chapterKey] || '继续推进') : '继续当前';
+    $('submit-status').textContent = '正在上传成绩与等级…';
+    showPage('finish');
+    renderFinishControls(nextRec);
+
     try {
-      // 1) 先用 fetch 正式发一次
-      const res = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: new URLSearchParams(payload)
-      });
-      if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
-      document.getElementById('submit-status').textContent = '✅ 成绩已上传';
+      await submitPayload(payload);
+      $('submit-status').textContent = '✅ 成绩与等级资料已提交';
     } catch (e) {
-      // 2) 失败时用隐藏 form 兜底提交一次
-      const form = document.getElementById('postForm');
-      form.book.value    = payload.book;
-      form.quizId.value  = payload.quizId;
-      form.name.value    = payload.name;
-      form.score.value   = payload.score;
-      form.correct.value = payload.correct;
-      form.wrong.value   = payload.wrong;
-      form.time.value    = payload.time;
-      form.submit();
-      document.getElementById('submit-status').textContent =
-        '⚠️ 成绩可能没有上传成功，请老师检查表格链接/权限';
-      console.error('Score upload failed:', e);
+      console.error(e);
+      fallbackSubmit(payload);
+      $('submit-status').textContent = '⚠️ 可能未成功上传，请检查 Apps Script 与 Sheet 权限';
     }
 
-    const ctrl=document.getElementById('controls'); ctrl.innerHTML='';
-    const back=document.createElement('button');
-    back.textContent='返回章节选择';
-    back.onclick=()=>{ document.getElementById('finish').style.display='none'; showChapterList(); };
-    ctrl.appendChild(back);
+    gameState = null;
   }
 
-  function shuffle(a){
-    for(let i=a.length-1;i>0;i--){
-      const j=Math.floor(Math.random()*(i+1));
-      [a[i],a[j]]=[a[j],a[i]];
+  function renderFinishControls(nextRec){
+    const ctrl = $('controls'); ctrl.innerHTML = '';
+    ctrl.append(
+      button('返回章节选择', 'ghost', showChapterList),
+      button('再来一次', 'secondary', () => currentMode === 'battle' ? startGame(currentRow, 'battle') : startQuiz(currentRow, currentMode || 'normal'))
+    );
+    if (nextRec) ctrl.append(button('做推荐下一章', 'warn', () => startQuiz(nextRec.row, 'smart')));
+  }
+
+  function gainExp(n){
+    profile.exp += n;
+    profile.level = calcLevel(profile.exp);
+    const levelInfo = getLevelInfo(profile.exp);
+    profile.expInLevel = levelInfo.expInLevel;
+    profile.nextLevelExp = levelInfo.nextLevelExp;
+  }
+
+  function calcLevel(exp){
+    return Math.floor((exp || 0) / CONFIG.LEVEL_BASE_EXP) + 1;
+  }
+
+  function getLevelInfo(exp){
+    const level = calcLevel(exp);
+    const floorExp = (level - 1) * CONFIG.LEVEL_BASE_EXP;
+    return { level, expInLevel: exp - floorExp, nextLevelExp: CONFIG.LEVEL_BASE_EXP };
+  }
+
+  function updateRowCompletion(row, sessionCorrect, sessionWrong){
+    const key = getRowStatKey(row);
+    const stat = getRowStat(row);
+    stat.completed = stat.completed || (sessionCorrect >= 5 && sessionCorrect >= sessionWrong);
+    profile.chapterStats[key] = stat;
+  }
+
+  function recordQuestionResult(row, isCorrect){
+    const key = getRowStatKey(row);
+    const stat = getRowStat(row);
+    stat.answered = (stat.answered || 0) + 1;
+    if (isCorrect) {
+      stat.correct = (stat.correct || 0) + 1;
+      stat.wrongStreak = 0;
+      profile.currentStreak = (profile.currentStreak || 0) + 1;
+      profile.bestStreak = Math.max(profile.bestStreak || 0, profile.currentStreak);
+    } else {
+      stat.wrong = (stat.wrong || 0) + 1;
+      stat.wrongStreak = (stat.wrongStreak || 0) + 1;
+      profile.currentStreak = 0;
     }
-    return a;
+    stat.last5 = stat.last5 || [];
+    stat.last5.push(!!isCorrect);
+    while (stat.last5.length > 5) stat.last5.shift();
+    profile.chapterStats[key] = stat;
+    saveProfile();
+  }
+
+  function getRowStat(row){
+    const key = getRowStatKey(row);
+    profile.chapterStats = profile.chapterStats || {};
+    if (!profile.chapterStats[key]) profile.chapterStats[key] = { answered:0, correct:0, wrong:0, completed:false, wrongStreak:0, last5:[] };
+    return profile.chapterStats[key];
+  }
+
+  function getRowStatKey(row){
+    return `${row?.[chapterKey] || ''}__${row?.[labelKey] || ''}`.trim();
+  }
+
+  function getDifficultyLabel(row){
+    const stat = getRowStat(row);
+    const acc = stat.answered ? stat.correct / stat.answered : null;
+    const chapterNo = getMainChapterNo(row[chapterKey]) || profile.level;
+    const effective = chapterNo + (profile.level >= 8 ? 1 : 0) + (acc !== null && acc > 0.85 ? 1 : 0);
+    if (effective <= 2) return '基础';
+    if (effective <= 5) return '进阶';
+    if (effective <= 8) return '挑战';
+    return '高手';
+  }
+
+  function getMainChapterNo(chapterStr){
+    if (!chapterStr) return null;
+    const m = String(chapterStr).match(/(?:^|\s)(?:Chp|Bab)\s*([0-9]+)/i);
+    return m ? parseInt(m[1], 10) : null;
+  }
+
+  function getRowTitle(row){
+    return `${row[chapterKey] || ''}${row[labelKey] ? ' — ' + row[labelKey] : ''}`.trim();
+  }
+
+  async function getQuestionsForRow(row){
+    const url = row[sheetKey];
+    if (questionCache.has(url)) return questionCache.get(url);
+    const list = await parseCsvSource(url);
+    questionCache.set(url, list);
+    return list;
+  }
+
+  function parseCsvSource(source){
+    return new Promise((resolve, reject) => {
+      Papa.parse(source, {
+        download:true, header:true, skipEmptyLines:true,
+        complete(res){
+          const data = (res.data || []).map(raw => {
+            const r = {};
+            Object.entries(raw || {}).forEach(([k,v]) => r[String(k).trim()] = v?.toString()?.trim?.() ?? v);
+            return r;
+          });
+          resolve(data);
+        },
+        error: reject
+      });
+    });
+  }
+
+  async function submitPayload(payload){
+    const res = await fetch(CONFIG.RESULTS_URL, { method:'POST', body:new URLSearchParams(payload) });
+    if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+  }
+
+  function fallbackSubmit(payload){
+    const form = $('postForm');
+    Array.from(form.querySelectorAll('input')).forEach(inp => inp.value = payload[inp.name] ?? '');
+    form.submit();
+  }
+
+  function extractBookCode(){
+    const m = document.title.match(/(F\d+\s+(?:SC|ACC)|MM)/i);
+    return m ? m[1].toUpperCase() : document.title.trim().toUpperCase();
+  }
+
+  function saveProfile(){
+    const li = getLevelInfo(profile.exp || 0);
+    profile.level = li.level;
+    profile.expInLevel = li.expInLevel;
+    profile.nextLevelExp = li.nextLevelExp;
+    localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(profile));
+  }
+
+  function loadProfile(){
+    try {
+      const raw = localStorage.getItem(CONFIG.STORAGE_KEY);
+      const p = raw ? JSON.parse(raw) : {};
+      return {
+        name: p.name || '',
+        studentId: p.studentId || '',
+        exp: Number(p.exp || 0),
+        level: Number(p.level || 1),
+        chapterStats: p.chapterStats || {},
+        bestStreak: Number(p.bestStreak || 0),
+        currentStreak: Number(p.currentStreak || 0),
+        expInLevel: 0,
+        nextLevelExp: CONFIG.LEVEL_BASE_EXP
+      };
+    } catch {
+      return { name:'', studentId:'', exp:0, level:1, chapterStats:{}, bestStreak:0, currentStreak:0, expInLevel:0, nextLevelExp:CONFIG.LEVEL_BASE_EXP };
+    }
+  }
+
+  function logout(){
+    user = '';
+    studentId = '';
+    profile = { name:'', studentId:'', exp:0, level:1, chapterStats:{}, bestStreak:0, currentStreak:0, expInLevel:0, nextLevelExp:CONFIG.LEVEL_BASE_EXP };
+    localStorage.removeItem(CONFIG.STORAGE_KEY);
+    $('username').value = '';
+    $('studentId').value = '';
+    $('monthlyPassword').value = '';
+    $('loginStatus').textContent = '系统会先检查月密码，再读取学生资料与等级。';
+    showPage('welcome');
+  }
+
+  function formatYM(d){
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+  function stripTime(d){
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+  function parseDateLoose(v){
+    if (!v) return null;
+    const s = String(v).trim();
+    if (!s) return null;
+    if (/^\d{4}-\d{2}$/.test(s)) return new Date(s + '-01');
+    const d = new Date(s);
+    return isNaN(d) ? null : d;
+  }
+  function percent(a,b){
+    return !b ? '0%' : `${Math.round(a/b*100)}%`;
+  }
+  function shuffle(a){
+    const arr = [...a];
+    for (let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]] = [arr[j],arr[i]];
+    }
+    return arr;
+  }
+  function button(text, cls, fn){
+    const b = document.createElement('button'); b.type='button'; b.textContent = text; b.className = cls; b.onclick = fn; return b;
+  }
+  function createPill(text){
+    const span = document.createElement('span'); span.className = 'pill'; span.textContent = text; return span;
   }
 });
 </script>
