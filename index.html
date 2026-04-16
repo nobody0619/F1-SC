@@ -93,6 +93,8 @@
     <div class="top-stats">
       <div class="pill" id="statUser">学生：-</div>
       <div class="pill" id="statBook">科目：-</div>
+      <button id="topRulesBtn" class="btn ghost small" type="button">📜 游戏规则</button>
+      <button id="topBoardBtn" class="btn ghost small" type="button">🏆 排行榜</button>
     </div>
     <div class="xp-wrap">
       <div class="xp-lv" id="statLevel">Lv 1</div>
@@ -171,6 +173,16 @@
   </div>
 </div>
 
+
+<div id="boardMask" class="modal-mask">
+  <div class="modal">
+    <h3 style="margin-top:0;">🏆 排行榜</h3>
+    <div class="muted" style="margin-bottom:10px;">显示当前科目前 10 名</div>
+    <div id="boardContent" style="line-height:1.8;">加载中...</div>
+    <div style="text-align:right;"><button id="closeBoardBtn" class="btn">关闭</button></div>
+  </div>
+</div>
+
 <div id="loadingMask" class="loading-box">
   <div class="loading-inner">
     <div id="loadingText" style="font-weight:700;margin-bottom:8px;">请稍等...</div>
@@ -210,8 +222,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('startBtn').onclick = handleLogin;
   document.getElementById('rulesBtn').onclick = () => toggleRules(true);
+  document.getElementById('topRulesBtn').onclick = () => toggleRules(true);
+  document.getElementById('topBoardBtn').onclick = () => toggleBoard(true);
   document.getElementById('closeRulesBtn').onclick = () => toggleRules(false);
+  document.getElementById('closeBoardBtn').onclick = () => toggleBoard(false);
   document.getElementById('rulesMask').onclick = (e) => { if (e.target.id === 'rulesMask') toggleRules(false); };
+  document.getElementById('boardMask').onclick = (e) => { if (e.target.id === 'boardMask') toggleBoard(false); };
   document.getElementById('backToListTop').onclick = showChapterList;
   document.getElementById('backFromFinish').onclick = () => {
     document.getElementById('finish').style.display = 'none';
@@ -224,6 +240,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function toggleRules(show){
     document.getElementById('rulesMask').style.display = show ? 'flex' : 'none';
+  }
+
+  async function toggleBoard(show){
+    document.getElementById('boardMask').style.display = show ? 'flex' : 'none';
+    if (!show) return;
+    const box = document.getElementById('boardContent');
+    box.innerHTML = '加载中...';
+    try {
+      const r = await jsonp({ action:'getLeaderboard', book, limit:'10' });
+      if (!r.ok) { box.innerHTML = '<div class="muted">读取排行榜失败</div>'; return; }
+      const rows = Array.isArray(r.rows) ? r.rows : [];
+      if (!rows.length) { box.innerHTML = '<div class="muted">暂时还没有排行榜数据</div>'; return; }
+      const html = ['<table style="width:100%;border-collapse:collapse">', '<tr><th style="text-align:left;border-bottom:1px solid #e5e7eb;padding:8px">排名</th><th style="text-align:left;border-bottom:1px solid #e5e7eb;padding:8px">名字</th><th style="text-align:left;border-bottom:1px solid #e5e7eb;padding:8px">Level</th><th style="text-align:left;border-bottom:1px solid #e5e7eb;padding:8px">EXP</th><th style="text-align:left;border-bottom:1px solid #e5e7eb;padding:8px">小怪</th><th style="text-align:left;border-bottom:1px solid #e5e7eb;padding:8px">Boss</th></tr>'];
+      rows.forEach((row, idx) => {
+        html.push(`<tr>
+          <td style="padding:8px;border-bottom:1px solid #f3f4f6">${escapeHtml(String(row.Rank || idx+1))}</td>
+          <td style="padding:8px;border-bottom:1px solid #f3f4f6">${escapeHtml(String(row.Name || '-'))}</td>
+          <td style="padding:8px;border-bottom:1px solid #f3f4f6">${escapeHtml(String(row.Level || 1))}</td>
+          <td style="padding:8px;border-bottom:1px solid #f3f4f6">${escapeHtml(String(row.EXP || 0))}</td>
+          <td style="padding:8px;border-bottom:1px solid #f3f4f6">${escapeHtml(String(row.MonsterKills || 0))}</td>
+          <td style="padding:8px;border-bottom:1px solid #f3f4f6">${escapeHtml(String(row.BossKills || 0))}</td>
+        </tr>`);
+      });
+      html.push('</table>');
+      box.innerHTML = html.join('');
+    } catch (e) {
+      console.error(e);
+      box.innerHTML = '<div class="muted">读取排行榜失败</div>';
+    }
   }
 
   function setLoading(show, text){
@@ -416,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const streak = Number(st.killStreak || 0);
     left.innerHTML = `
       <div class="title-main">🧟 ${escapeHtml(titleText)}</div>
-      <div class="meta">题数：${cnt}<br>怪兽怪兽状态：<span class="status ${isDead?'dead':'alive'}">${statusText}</span><br>连杀：${streak}</div>
+      <div class="meta">题数：${cnt}<br>怪兽状态：<span class="status ${isDead?'dead':'alive'}">${statusText}</span><br>连杀：${streak}</div>
     `;
 
     const actions = document.createElement('div'); actions.className = 'actions';
