@@ -1,0 +1,4 @@
+﻿title,type,question,A,B,C,D,E,F,answer,image
+种子发芽,text,这是哪种发芽（写全名）,,,,,,,"Epigeal germination,Percambahan epigeal",epigeal.png
+,text,这是哪种发芽（写全名）,,,,,,,"Hypogeal germination,Percambahan hipogeal",hypogeal.png
+,checkbox,发芽需要的 condition / syarat,Water / Air,Air / Udara,Suitable temperature / Suhu yang sesuai,Sunlight / Cahaya matahari,Fertiliser / Baja,Chlorophyll / Klorofil,"A,B,C",

@@ -1,0 +1,7 @@
+﻿title,type,question,A,B,C,D,E,F,G,H,answer,image
+Structure and Function of Each Part of a Flower,checkbox,Stamen 包含,Anther / Anter,Filament / Filamen,Petal / Ranggi,Sepal,Stigma,Style / Stil,Ovary / Ovari,Ovule / Ovul,"A,B",
+,checkbox,Pistil 包含,Anther / Anter,Filament / Filamen,Petal / Ranggi,Sepal,Stigma,Style / Stil,Ovary / Ovari,Ovule / Ovul,"E,F,G",
+,radio,produce pollen grain / menghasilkan debunga,Anther / Anter,Filament / Filamen,Petal / Ranggi,Sepal,Stigma,Style / Stil,Ovary / Ovari,Ovule / Ovul,A,
+,radio,receive pollen grain / menerima debunga,Anther / Anter,Filament / Filamen,Petal / Ranggi,Sepal,Stigma,Style / Stil,Ovary / Ovari,Ovule / Ovul,E,
+,radio,Male reproductive organ / Organ pembiakan jantan bunga,Stamen,Pistil,,,,,,,A,
+,radio,Female reproductive organ / Organ pembiakan betina bunga,Stamen,Pistil,,,,,,,B,
