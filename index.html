@@ -46,10 +46,10 @@
     #topbar .left{text-align:left}
     progress{width:100%;height:18px}
     .question{text-align:left;margin:15px 0;padding-left:6px}
-    .option-label{display:block;margin:6px 0;cursor:pointer;padding:8px;border-radius:10px}
+    .option-label{display:flex;align-items:flex-start;gap:8px;margin:6px 0;cursor:pointer;padding:8px;border-radius:10px;text-align:left;line-height:1.45;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
     .option-label:hover{background:#f3f4f6}
     .feedback{font-weight:bold;margin:12px 0;line-height:1.6}
-    input[type="radio"],input[type="checkbox"]{transform:scale(1.2);margin-right:8px}
+    input[type="radio"],input[type="checkbox"]{transform:scale(1.2);margin:3px 2px 0 0;flex:0 0 auto}.option-text{display:inline-block;min-width:0;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
     img{max-width:100%;margin:10px 0;border:2px solid #ccc;border-radius:10px}
     #submit-status{margin-top:10px;font-size:14px}
     .muted{color:var(--muted)}
@@ -183,7 +183,7 @@
     <div class="footer-help">
       有问题可直接 WhatsApp 老师：<a href="https://wa.me/60167312519" target="_blank" rel="noopener">016-7312519</a>
     </div>
-    <div class="version-tag" id="versionTag">版本：2026.06.09.6</div>
+    <div class="version-tag" id="versionTag">版本：2026.06.09.7</div>
   </div>
 </div>
 
@@ -225,7 +225,7 @@
       <div class="xp-text" id="statExp">⚡0 / 100</div>
     </div>
     <div id="levelUpMsg" class="levelup"></div>
-    <div class="version-tag">版本：2026.06.09.6</div>
+    <div class="version-tag">版本：2026.06.09.7</div>
   </div>
   <div id="chapterWrap"></div>
 </div>
@@ -336,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const SCRIPT_URL = document.getElementById('postForm').getAttribute('action');
   const STORAGE_KEY = 'kee_quiz_game_auth_v1';
   const TZ = 'Asia/Kuala_Lumpur';
-  const APP_VERSION = '2026.06.09.6';
+  const APP_VERSION = '2026.06.09.7';
   const SKIP_SERVER_LOGIN = true; // 紧急稳定模式：登入不等待 Apps Script，避免学生卡在登入
   const QUESTION_CACHE_PREFIX = 'kee_question_cache_v1_';
   const QUESTION_CACHE_DAYS = 30;
@@ -1219,7 +1219,8 @@ document.addEventListener('DOMContentLoaded', () => {
         inp.type = (q.type==='checkbox'?'checkbox':'radio');
         inp.name='opt'; inp.value=l; inp.id='opt_'+l;
         const lbl=document.createElement('label'); lbl.className='option-label'; lbl.htmlFor='opt_'+l;
-        lbl.appendChild(inp); lbl.append(' '+q[l]); opts.appendChild(lbl);
+        const sp=document.createElement('span'); sp.className='option-text'; sp.textContent = q[l];
+        lbl.appendChild(inp); lbl.appendChild(sp); opts.appendChild(lbl);
       });
     }
     div.appendChild(opts);
@@ -1505,6 +1506,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function submitByHiddenForm(payload){
     return new Promise(resolve => {
       const form = document.getElementById('postForm');
+      form.action.value = payload.action || 'submitToQueue';
+      form.submitId.value = payload.submitId || '';
       form.book.value    = payload.book || '';
       form.quizId.value  = payload.quizId || '';
       form.name.value    = payload.name || '';
@@ -1515,7 +1518,7 @@ document.addEventListener('DOMContentLoaded', () => {
       form.mode.value    = payload.mode || '';
       form.expGained.value = payload.expGained || 0;
       try { form.submit(); } catch(e) {}
-      setTimeout(() => resolve({ ok:true, via:'form' }), 1400);
+      setTimeout(() => resolve({ ok:true, via:'form' }), 1200);
     });
   }
 
@@ -1534,21 +1537,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   function submitQueueBeacon(params){
-    // 兜底提交：使用 Image GET，和错题本同一种方式，Apps Script 最稳定能收到。
+    // 三通道备用提交：GET Image + GET fetch + hidden form POST，全部用同一个 submitId，Apps Script 会自动防重复。
+    let ok = false;
     try {
       const payload = { ...params, action:'submitToQueue', v:APP_VERSION, _:String(Date.now()) };
       const q = new URLSearchParams(payload);
+      const url = SCRIPT_URL + '?' + q.toString();
+
+      // 1. Image GET：和错题本一样，最适合手机浏览器。
       const img = new Image();
       img.referrerPolicy = 'no-referrer';
-      img.src = SCRIPT_URL + '?' + q.toString();
+      img.src = url;
       window.__scoreBeacons = window.__scoreBeacons || [];
       window.__scoreBeacons.push(img);
       setTimeout(() => {
         try { window.__scoreBeacons = (window.__scoreBeacons || []).slice(-30); } catch(e) {}
       }, 8000);
-      return true;
+      ok = true;
+
+      // 2. fetch GET：不等待结果，只是再送一次。
+      try { fetch(url, { method:'GET', mode:'no-cors', cache:'no-store', credentials:'omit' }).catch(()=>{}); ok = true; } catch(e) {}
+
+      // 3. hidden form POST：有些浏览器 GET 被拦时可用。
+      try { submitByHiddenForm(payload); ok = true; } catch(e) {}
+
+      return ok;
     } catch(e) {
-      return false;
+      return ok;
     }
   }
 
@@ -1570,19 +1585,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('submit-status').textContent = '正在送出成绩...';
     setLoading(true, '正在送出成绩...');
 
+    // 先用三通道立刻送出，避免 JSONP timeout 时完全没写入。
+    const fallbackSent = submitQueueBeacon(payload);
+
     try {
-      // 主提交：JSONP GET。这个方式有 Apps Script 回应，能确认 SubmitQueue 已写入。
-      const r = await jsonpApi(payload, 10000);
+      // 同时用 JSONP 确认 Apps Script 已收到。即使 JSONP 失败，上面的三通道仍已送出。
+      const r = await jsonpApi(payload, 8000);
       if (!r || !r.ok) throw new Error((r && r.error) || 'SubmitQueue failed');
 
       document.getElementById('submit-status').textContent = '✅ 成绩已进入 SubmitQueue（后台处理中）';
     } catch(e) {
       console.error(e);
-      // 兜底：再送一次 Image GET，并把同一 submitId 留在本机，老师/学生可补交。
-      submitQueueBeacon(payload);
       savePendingScore(payload);
       document.getElementById('submit-status').innerHTML =
-        '⚠️ 成绩已用备用方式送出，并暂存在本机。若老师表里没有出现，请点“补交成绩”。 ' +
+        (fallbackSent ? '⚠️ 成绩已用备用方式送出，但未收到确认。' : '⚠️ 成绩暂存在本机。') +
+        ' 请稍后检查 SubmitQueue；若没有出现，请点“补交成绩”。 ' +
         '<button class="btn small secondary" onclick="window.retryPendingScores && window.retryPendingScores()">补交成绩</button>';
     } finally {
       setLoading(false);
@@ -1593,7 +1610,6 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const key = 'kee_pending_scores_v1';
       const arr = JSON.parse(localStorage.getItem(key) || '[]');
-      // 同一个 submitId 不重复存。
       const id = String(payload.submitId || '');
       const kept = arr.filter(x => String(x.submitId || '') !== id);
       kept.push(payload);
@@ -1612,12 +1628,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const remain = [];
 
     for (const item of arr) {
+      submitQueueBeacon({ ...item, action:'submitToQueue' });
       try {
-        const r = await jsonpApi({ ...item, action:'submitToQueue' }, 10000);
+        const r = await jsonpApi({ ...item, action:'submitToQueue' }, 8000);
         if (r && r.ok) okCount++;
         else remain.push(item);
       } catch(e) {
-        submitQueueBeacon({ ...item, action:'submitToQueue' });
         remain.push(item);
       }
     }
