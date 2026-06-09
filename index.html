@@ -183,7 +183,7 @@
     <div class="footer-help">
       有问题可直接 WhatsApp 老师：<a href="https://wa.me/60167312519" target="_blank" rel="noopener">016-7312519</a>
     </div>
-    <div class="version-tag" id="versionTag">版本：2026.06.09.5</div>
+    <div class="version-tag" id="versionTag">版本：2026.06.09.6</div>
   </div>
 </div>
 
@@ -225,7 +225,7 @@
       <div class="xp-text" id="statExp">⚡0 / 100</div>
     </div>
     <div id="levelUpMsg" class="levelup"></div>
-    <div class="version-tag">版本：2026.06.09.5</div>
+    <div class="version-tag">版本：2026.06.09.6</div>
   </div>
   <div id="chapterWrap"></div>
 </div>
@@ -336,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const SCRIPT_URL = document.getElementById('postForm').getAttribute('action');
   const STORAGE_KEY = 'kee_quiz_game_auth_v1';
   const TZ = 'Asia/Kuala_Lumpur';
-  const APP_VERSION = '2026.06.09.5';
+  const APP_VERSION = '2026.06.09.6';
   const SKIP_SERVER_LOGIN = true; // 紧急稳定模式：登入不等待 Apps Script，避免学生卡在登入
   const QUESTION_CACHE_PREFIX = 'kee_question_cache_v1_';
   const QUESTION_CACHE_DAYS = 30;
@@ -1534,31 +1534,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   function submitQueueBeacon(params){
-    // 最快提交：优先使用 navigator.sendBeacon，不等待 Apps Script / Google Sheet 完成。
-    // 注意：学生端会马上放行；Google Sheet 里出现时间仍由 Google 后台决定。
+    // 兜底提交：使用 Image GET，和错题本同一种方式，Apps Script 最稳定能收到。
     try {
       const payload = { ...params, action:'submitToQueue', v:APP_VERSION, _:String(Date.now()) };
-      const body = new URLSearchParams(payload);
-
-      if (navigator.sendBeacon) {
-        const ok = navigator.sendBeacon(SCRIPT_URL, body);
-        if (ok) return true;
-      }
-
-      // sendBeacon 不支持时，用 keepalive fetch；不等待结果。
-      try {
-        fetch(SCRIPT_URL, {
-          method:'POST',
-          body,
-          mode:'no-cors',
-          keepalive:true,
-          credentials:'omit',
-          cache:'no-store'
-        }).catch(()=>{});
-        return true;
-      } catch(e) {}
-
-      // 最后兜底：Image GET
       const q = new URLSearchParams(payload);
       const img = new Image();
       img.referrerPolicy = 'no-referrer';
@@ -1566,8 +1544,8 @@ document.addEventListener('DOMContentLoaded', () => {
       window.__scoreBeacons = window.__scoreBeacons || [];
       window.__scoreBeacons.push(img);
       setTimeout(() => {
-        try { window.__scoreBeacons = (window.__scoreBeacons || []).slice(-20); } catch(e) {}
-      }, 5000);
+        try { window.__scoreBeacons = (window.__scoreBeacons || []).slice(-30); } catch(e) {}
+      }, 8000);
       return true;
     } catch(e) {
       return false;
@@ -1593,15 +1571,19 @@ document.addEventListener('DOMContentLoaded', () => {
     setLoading(true, '正在送出成绩...');
 
     try {
-      const sent = submitQueueBeacon(payload);
-      if (!sent) throw new Error('send failed');
+      // 主提交：JSONP GET。这个方式有 Apps Script 回应，能确认 SubmitQueue 已写入。
+      const r = await jsonpApi(payload, 10000);
+      if (!r || !r.ok) throw new Error((r && r.error) || 'SubmitQueue failed');
 
-      await new Promise(resolve => setTimeout(resolve, 80));
-      document.getElementById('submit-status').textContent = '✅ 成绩已送出（后台处理中）';
+      document.getElementById('submit-status').textContent = '✅ 成绩已进入 SubmitQueue（后台处理中）';
     } catch(e) {
       console.error(e);
+      // 兜底：再送一次 Image GET，并把同一 submitId 留在本机，老师/学生可补交。
+      submitQueueBeacon(payload);
       savePendingScore(payload);
-      document.getElementById('submit-status').innerHTML = '⚠️ 成绩暂存在本机。请点“补交成绩”或截图给老师。 <button class="btn small secondary" onclick="window.retryPendingScores && window.retryPendingScores()">补交成绩</button>';
+      document.getElementById('submit-status').innerHTML =
+        '⚠️ 成绩已用备用方式送出，并暂存在本机。若老师表里没有出现，请点“补交成绩”。 ' +
+        '<button class="btn small secondary" onclick="window.retryPendingScores && window.retryPendingScores()">补交成绩</button>';
     } finally {
       setLoading(false);
     }
@@ -1611,8 +1593,11 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const key = 'kee_pending_scores_v1';
       const arr = JSON.parse(localStorage.getItem(key) || '[]');
-      arr.push(payload);
-      localStorage.setItem(key, JSON.stringify(arr.slice(-20)));
+      // 同一个 submitId 不重复存。
+      const id = String(payload.submitId || '');
+      const kept = arr.filter(x => String(x.submitId || '') !== id);
+      kept.push(payload);
+      localStorage.setItem(key, JSON.stringify(kept.slice(-20)));
     } catch(e) {}
   }
 
@@ -1621,17 +1606,27 @@ document.addEventListener('DOMContentLoaded', () => {
     let arr = [];
     try { arr = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { arr = []; }
     if (!arr.length) return alert('没有待补交成绩。');
+
     setLoading(true, '正在补交成绩...');
     let okCount = 0;
+    const remain = [];
+
     for (const item of arr) {
       try {
-        if (submitQueueBeacon({ ...item, action:'submitToQueue' })) okCount++;
-      } catch(e) {}
+        const r = await jsonpApi({ ...item, action:'submitToQueue' }, 10000);
+        if (r && r.ok) okCount++;
+        else remain.push(item);
+      } catch(e) {
+        submitQueueBeacon({ ...item, action:'submitToQueue' });
+        remain.push(item);
+      }
     }
-    localStorage.removeItem(key);
-    await new Promise(resolve => setTimeout(resolve, 80));
+
+    if (remain.length) localStorage.setItem(key, JSON.stringify(remain.slice(-20)));
+    else localStorage.removeItem(key);
+
     setLoading(false);
-    alert(`补交完成：已送出 ${okCount} 份`);
+    alert(`补交完成：确认 ${okCount} 份；${remain.length} 份仍暂存在本机。`);
   }
 
   function daysLeft(ts){
