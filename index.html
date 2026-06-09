@@ -183,7 +183,7 @@
     <div class="footer-help">
       有问题可直接 WhatsApp 老师：<a href="https://wa.me/60167312519" target="_blank" rel="noopener">016-7312519</a>
     </div>
-    <div class="version-tag" id="versionTag">版本：2026.06.09.7</div>
+    <div class="version-tag" id="versionTag">版本：2026.06.09.8</div>
   </div>
 </div>
 
@@ -225,7 +225,7 @@
       <div class="xp-text" id="statExp">⚡0 / 100</div>
     </div>
     <div id="levelUpMsg" class="levelup"></div>
-    <div class="version-tag">版本：2026.06.09.7</div>
+    <div class="version-tag">版本：2026.06.09.8</div>
   </div>
   <div id="chapterWrap"></div>
 </div>
@@ -280,7 +280,7 @@
 <form id="postForm"
       action="https://script.google.com/macros/s/AKfycbwOadAK74XfAiOFkokD6zlQ8kQZTFDI0_SVWwMSSRgT8mwuoCac2VSAIj8X07L7NVVF/exec"
       method="post" target="postFrame" style="display:none;">
-  <input name="action" value="submitScoreFast"/>
+  <input name="action" value="submitToQueue"/>
   <input name="submitId"/>
   <input name="book"/>
   <input name="quizId"/><input name="name"/><input name="score"/>
@@ -336,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const SCRIPT_URL = document.getElementById('postForm').getAttribute('action');
   const STORAGE_KEY = 'kee_quiz_game_auth_v1';
   const TZ = 'Asia/Kuala_Lumpur';
-  const APP_VERSION = '2026.06.09.7';
+  const APP_VERSION = '2026.06.09.8';
   const SKIP_SERVER_LOGIN = true; // 紧急稳定模式：登入不等待 Apps Script，避免学生卡在登入
   const QUESTION_CACHE_PREFIX = 'kee_question_cache_v1_';
   const QUESTION_CACHE_DAYS = 30;
@@ -1544,7 +1544,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const q = new URLSearchParams(payload);
       const url = SCRIPT_URL + '?' + q.toString();
 
-      // 1. Image GET：和错题本一样，最适合手机浏览器。
       const img = new Image();
       img.referrerPolicy = 'no-referrer';
       img.src = url;
@@ -1555,10 +1554,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 8000);
       ok = true;
 
-      // 2. fetch GET：不等待结果，只是再送一次。
       try { fetch(url, { method:'GET', mode:'no-cors', cache:'no-store', credentials:'omit' }).catch(()=>{}); ok = true; } catch(e) {}
-
-      // 3. hidden form POST：有些浏览器 GET 被拦时可用。
       try { submitByHiddenForm(payload); ok = true; } catch(e) {}
 
       return ok;
@@ -1585,21 +1581,22 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('submit-status').textContent = '正在送出成绩...';
     setLoading(true, '正在送出成绩...');
 
-    // 先用三通道立刻送出，避免 JSONP timeout 时完全没写入。
-    const fallbackSent = submitQueueBeacon(payload);
-
     try {
-      // 同时用 JSONP 确认 Apps Script 已收到。即使 JSONP 失败，上面的三通道仍已送出。
-      const r = await jsonpApi(payload, 8000);
-      if (!r || !r.ok) throw new Error((r && r.error) || 'SubmitQueue failed');
+      // 第一通道：hidden form POST。这个是最稳定、最少被手机浏览器拦截的提交方式。
+      await submitByHiddenForm(payload);
 
-      document.getElementById('submit-status').textContent = '✅ 成绩已进入 SubmitQueue（后台处理中）';
+      // 第二通道：Image GET。和错题本同一种方式，作为备份。
+      submitQueueBeacon(payload);
+
+      // 第三通道：JSONP 只做确认；失败不代表没送出。
+      jsonpApi(payload, 5000).catch(()=>{});
+
+      document.getElementById('submit-status').textContent = '✅ 成绩已送出到 SubmitQueue（请稍后刷新成绩表）';
     } catch(e) {
       console.error(e);
       savePendingScore(payload);
       document.getElementById('submit-status').innerHTML =
-        (fallbackSent ? '⚠️ 成绩已用备用方式送出，但未收到确认。' : '⚠️ 成绩暂存在本机。') +
-        ' 请稍后检查 SubmitQueue；若没有出现，请点“补交成绩”。 ' +
+        '⚠️ 成绩暂存在本机。请点“补交成绩”或截图给老师。 ' +
         '<button class="btn small secondary" onclick="window.retryPendingScores && window.retryPendingScores()">补交成绩</button>';
     } finally {
       setLoading(false);
@@ -1624,15 +1621,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!arr.length) return alert('没有待补交成绩。');
 
     setLoading(true, '正在补交成绩...');
-    let okCount = 0;
+    let sent = 0;
     const remain = [];
 
     for (const item of arr) {
-      submitQueueBeacon({ ...item, action:'submitToQueue' });
       try {
-        const r = await jsonpApi({ ...item, action:'submitToQueue' }, 8000);
-        if (r && r.ok) okCount++;
-        else remain.push(item);
+        await submitByHiddenForm({ ...item, action:'submitToQueue' });
+        submitQueueBeacon({ ...item, action:'submitToQueue' });
+        sent++;
       } catch(e) {
         remain.push(item);
       }
@@ -1642,7 +1638,7 @@ document.addEventListener('DOMContentLoaded', () => {
     else localStorage.removeItem(key);
 
     setLoading(false);
-    alert(`补交完成：确认 ${okCount} 份；${remain.length} 份仍暂存在本机。`);
+    alert(`补交完成：已送出 ${sent} 份；${remain.length} 份仍暂存在本机。`);
   }
 
   function daysLeft(ts){
