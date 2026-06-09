@@ -185,7 +185,7 @@
     <div class="footer-help">
       有问题可直接 WhatsApp 老师：<a href="https://wa.me/60167312519" target="_blank" rel="noopener">016-7312519</a>
     </div>
-    <div class="version-tag" id="versionTag">版本：2026.06.09.1</div>
+    <div class="version-tag" id="versionTag">版本：2026.06.09.2</div>
   </div>
 </div>
 
@@ -228,7 +228,7 @@
       <div class="xp-text" id="statExp">⚡0 / 100</div>
     </div>
     <div id="levelUpMsg" class="levelup"></div>
-    <div class="version-tag">版本：2026.06.09.1</div>
+    <div class="version-tag">版本：2026.06.09.2</div>
   </div>
   <div id="chapterWrap"></div>
 </div>
@@ -339,7 +339,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const SCRIPT_URL = document.getElementById('postForm').getAttribute('action');
   const STORAGE_KEY = 'kee_quiz_game_auth_v1';
   const TZ = 'Asia/Kuala_Lumpur';
-  const APP_VERSION = '2026.06.09.1';
+  const APP_VERSION = '2026.06.09.2';
+  const ENABLE_EMERGENCY_LOGIN_FALLBACK = true;
+  const LOGIN_TIMEOUT_MS = 4500;
   const PENDING_SCORE_KEY = 'kee_pending_scores_v2';
   let serverBaseMs = 0;
   let perfBaseMs = 0;
@@ -571,8 +573,15 @@ document.addEventListener('DOMContentLoaded', () => {
     msg.textContent = '正在验证...';
     setLoading(true, '正在验证每月密码，请稍等...');
     try {
-      const r = await apiFetch({ action:'checkPasswordFast', book, name:nm, password:pwd, ua:getUserAgent() }, 1);
-      if (!r.ok) { msg.textContent = explainLoginError(r.error || '验证失败'); return; }
+      let r = null;
+      try {
+        r = await loginApiFetch({ action:'checkPasswordFast', book, name:nm, password:pwd, ua:getUserAgent() });
+        if (!r.ok) { msg.textContent = explainLoginError(r.error || '验证失败'); return; }
+      } catch(loginErr) {
+        if (!ENABLE_EMERGENCY_LOGIN_FALLBACK) throw loginErr;
+        console.warn('Login server slow, emergency fallback enabled:', loginErr);
+        msg.textContent = '服务器较慢，先进入练习模式。';
+      }
       displayUser = nm;
       user = normalizeName(nm);
       saveAuth(displayUser, pwd);
@@ -643,6 +652,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     throw lastErr || new Error('Fetch error');
+  }
+
+
+  async function loginApiFetch(params){
+    const u = new URL(SCRIPT_URL);
+    Object.entries({ ...params, v:APP_VERSION, _:String(Date.now()) }).forEach(([k,v]) => u.searchParams.set(k, v == null ? '' : String(v)));
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), LOGIN_TIMEOUT_MS);
+    try {
+      const res = await fetch(u.toString(), { method:'GET', cache:'no-store', credentials:'omit', signal:controller.signal });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   function normalizeName(name){
@@ -1088,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mode === 'monster') {
       setLoading(true, '正在检查小怪状态，请稍等...');
       try {
-        const guard = await apiFetch({ action:'canStartBattle', book, name:user, type:'monster', monsterId:buildMonsterId(row) }, 3);
+        const guard = await apiFetch({ action:'canStartBattle', book, name:user, type:'monster', monsterId:buildMonsterId(row) }, 0);
         if (!guard.ok || !guard.canStart) {
           setLoading(false);
           isStartingQuiz = false;
@@ -1098,10 +1122,8 @@ document.addEventListener('DOMContentLoaded', () => {
           return showChapterList();
         }
       } catch(e) {
+        console.warn('canStartBattle timeout, allow challenge:', e);
         setLoading(false);
-        isStartingQuiz = false;
-        alert('连接验证失败，请点“更新页面”后再试。');
-        return;
       }
     }
     currentMode = mode;
@@ -1142,7 +1164,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function startBossFight(babNo, arr){
     setLoading(true, '正在检查 Boss 状态，请稍等...');
     try {
-      const guard = await apiFetch({ action:'canStartBattle', book, name:user, type:'boss', bab:String(babNo) }, 3);
+      const guard = await apiFetch({ action:'canStartBattle', book, name:user, type:'boss', bab:String(babNo) }, 0);
       if (!guard.ok || !guard.canStart) {
         setLoading(false);
         alert(guard.error || 'Boss 还没有复活，不能重复挑战。');
@@ -1151,9 +1173,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return showChapterList();
       }
     } catch(e) {
+      console.warn('Boss check timeout, allow challenge:', e);
       setLoading(false);
-      alert('连接验证失败，请点“更新页面”后再试。');
-      return;
     }
     currentMode = 'boss';
     currentRow = { [chapterKey]: `Bab ${babNo}`, [labelKey]:'Boss Challenge' };
