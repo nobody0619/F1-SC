@@ -162,9 +162,9 @@
 <div id="login" class="login-wrap">
   <div class="card">
     <h2 id="loginTitle"></h2>
-    <p class="muted">请输入姓名和月密码</p>
+    <p class="muted">请输入姓名和每月密码</p>
     <input type="text" id="username" placeholder="姓名 / Name"/>
-    <input type="password" id="monthPassword" placeholder="月密码 / Monthly Password"/>
+    <input type="password" id="monthPassword" placeholder="每月密码 / Monthly Password"/>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
       <button id="startBtn" class="btn" type="button">进入 / Start</button>
       <button id="rulesBtn" class="btn ghost" type="button">📜 游戏规则</button>
@@ -183,7 +183,7 @@
     <div class="footer-help">
       有问题可直接 WhatsApp 老师：<a href="https://wa.me/60167312519" target="_blank" rel="noopener">016-7312519</a>
     </div>
-    <div class="version-tag" id="versionTag">版本：2026.05.26.2</div>
+    <div class="version-tag" id="versionTag">版本：2026.06.09.3</div>
   </div>
 </div>
 
@@ -225,7 +225,7 @@
       <div class="xp-text" id="statExp">⚡0 / 100</div>
     </div>
     <div id="levelUpMsg" class="levelup"></div>
-    <div class="version-tag">版本：2026.05.26.2</div>
+    <div class="version-tag">版本：2026.06.09.3</div>
   </div>
   <div id="chapterWrap"></div>
 </div>
@@ -336,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const SCRIPT_URL = document.getElementById('postForm').getAttribute('action');
   const STORAGE_KEY = 'kee_quiz_game_auth_v1';
   const TZ = 'Asia/Kuala_Lumpur';
-  const APP_VERSION = '2026.05.26.2';
+  const APP_VERSION = '2026.06.09.3';
   let serverBaseMs = 0;
   let perfBaseMs = 0;
   let deferredInstallPrompt = null;
@@ -528,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const nm = document.getElementById('username').value.trim();
     const pwd = document.getElementById('monthPassword').value.trim();
     const msg = document.getElementById('loginMsg');
-    if (!nm || !pwd) return msg.textContent = '请输入姓名和月密码';
+    if (!nm || !pwd) return msg.textContent = '请输入姓名和每月密码';
     msg.textContent = '正在验证...';
     setLoading(true, '正在验证密码并加载题库，请稍等...');
     try {
@@ -562,9 +562,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function explainLoginError(errMsg){
     const s = String(errMsg || '');
-    if (s.includes('月密码错误') || s.includes('有效日期')) return '密码不对，或当前日期不在有效期内。请再检查一次。';
-    if (s.includes('Missing')) return '请输入姓名和月密码。';
-    if (s.includes('empty')) return '系统里还没有月密码资料，请联络老师。';
+    if (s.includes('每月密码错误') || s.includes('有效日期')) return '密码不对，或当前日期不在有效期内。请再检查一次。';
+    if (s.includes('Missing')) return '请输入姓名和每月密码。';
+    if (s.includes('empty')) return '系统里还没有每月密码资料，请联络老师。';
     return '连接验证失败，请刷新后重试；若还是不行，请改用 Chrome / Safari，或联络老师。';
   }
 
