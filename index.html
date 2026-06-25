@@ -1173,11 +1173,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function postWrongBookAction(payload){
     // WrongBook 内容可能很长，Image GET 可能超出 URL 长度。
-    // 所以用 POST 为主，GET 只做短内容备用。
+    // 每次只走一种提交方式，避免同一题被多渠道重复写入。
     const fullPayload = { ...payload, v:APP_VERSION, _:String(Date.now()) };
+    const dedupeKey = [fullPayload.action, fullPayload.book, fullPayload.name, fullPayload.wrongId].join('|');
+    window.__wrongBookSentAt = window.__wrongBookSentAt || {};
+    const now = Date.now();
+    if (window.__wrongBookSentAt[dedupeKey] && now - window.__wrongBookSentAt[dedupeKey] < 2500) return true;
+    window.__wrongBookSentAt[dedupeKey] = now;
 
-    let sent = false;
-    sent = postByHiddenFormGeneric(fullPayload) || sent;
+    const body = new URLSearchParams(fullPayload).toString();
+
+    try {
+      if (navigator.sendBeacon) {
+        const blob = new Blob([body], { type:'application/x-www-form-urlencoded;charset=UTF-8' });
+        if (navigator.sendBeacon(SCRIPT_URL, blob)) return true;
+      }
+    } catch(e) {}
 
     try {
       fetch(SCRIPT_URL, {
@@ -1186,10 +1197,12 @@ document.addEventListener('DOMContentLoaded', () => {
         cache:'no-store',
         credentials:'omit',
         headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
-        body:new URLSearchParams(fullPayload).toString()
+        body
       }).catch(()=>{});
-      sent = true;
+      return true;
     } catch(e) {}
+
+    if (postByHiddenFormGeneric(fullPayload)) return true;
 
     // 短资料才用 Image GET，避免 question/options 太长导致失败。
     try {
@@ -1204,11 +1217,11 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
           try { window.__wrongBookBeacons = (window.__wrongBookBeacons || []).slice(-30); } catch(e) {}
         }, 5000);
-        sent = true;
+        return true;
       }
     } catch(e) {}
 
-    return sent;
+    return false;
   }
 
   function buildWrongId(row, q){
