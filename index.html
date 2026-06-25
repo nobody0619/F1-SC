@@ -564,6 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function toggleRewardRules(show){ document.getElementById('rewardRulesMask').style.display = show ? 'flex' : 'none'; }
 
   function getShopItem(itemId){ return SHOP_ITEMS.find(x => x.itemId === itemId) || null; }
+  function sellRefund(item){ return Math.floor(Number(item.price || 0) * 0.7); }
   function hasItem(itemId){
     return (shopProfile.inventory || []).some(x => String(x.itemId || x.ItemId || '') === itemId && Number(x.qty || x.Qty || 0) > 0);
   }
@@ -629,8 +630,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const box = document.getElementById('shopContent');
     const sum = document.getElementById('shopSummary');
     box.innerHTML = '加载中...';
-    await loadCoins();
-    await loadShopProfile();
+    await Promise.all([loadCoins(), loadShopProfile()]);
     sum.textContent = `我的金币：${Number(coinState.coins || 0)}｜称号：${equippedItem('title') ? equippedItem('title').icon + ' ' + equippedItem('title').name : '未装备'}｜头像：${equippedItem('avatar') ? equippedItem('avatar').icon + ' ' + equippedItem('avatar').name : '未装备'}`;
 
     let list = [];
@@ -667,6 +667,13 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.onclick = () => equipItem(item.itemId);
       }
       div.appendChild(btn);
+      if (owned && (item.type === 'title' || item.type === 'avatar')) {
+        const sellBtn = document.createElement('button');
+        sellBtn.className = 'btn ghost small';
+        sellBtn.textContent = `卖回 +${sellRefund(item)}`;
+        sellBtn.onclick = () => sellItem(item.itemId);
+        div.appendChild(sellBtn);
+      }
       grid.appendChild(div);
     });
   }
@@ -679,8 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const r = await apiFetch({ action:'buyShopItem', book, name:user, itemId, activate: activate ? 'true' : 'false' }, 1);
       if (!r.ok) return alert(r.error || '购买失败');
-      await loadCoins();
-      await loadShopProfile();
+      await Promise.all([loadCoins(), loadShopProfile()]);
       alert(r.message || '购买成功');
       openShop(item.type === 'boost' ? 'useful' : item.type);
     } catch(e) {
@@ -701,6 +707,25 @@ document.addEventListener('DOMContentLoaded', () => {
       openShop(item.type);
     } catch(e) { alert('装备失败：' + e); }
     finally { setLoading(false); }
+  }
+
+  async function sellItem(itemId){
+    const item = getShopItem(itemId);
+    if (!item) return;
+    const refund = sellRefund(item);
+    if (!confirm(`确定卖回 ${item.icon} ${item.name}？\n可退回：${refund} 金币\n如果正在装备，会自动卸下。`)) return;
+    setLoading(true, '正在卖回...');
+    try {
+      const r = await apiFetch({ action:'sellShopItem', book, name:user, itemId }, 1);
+      if (!r.ok) return alert(r.error || '卖回失败');
+      await Promise.all([loadCoins(), loadShopProfile()]);
+      alert(r.message || `卖回成功，退回 ${refund} 金币。`);
+      openShop(item.type);
+    } catch(e) {
+      alert('卖回失败：' + e);
+    } finally {
+      setLoading(false);
+    }
   }
 
   function toggleRules(show){
