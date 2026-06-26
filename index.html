@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const SCRIPT_URL = document.getElementById('postForm').getAttribute('action');
   const STORAGE_KEY = 'kee_quiz_game_auth_v1';
   const TZ = 'Asia/Kuala_Lumpur';
-  const APP_VERSION = '2026.06.24.2';
+  const APP_VERSION = '2026.06.26.1';
   const SKIP_SERVER_LOGIN = true; // 紧急稳定模式：登入不等待 Apps Script，避免学生卡在登入
   const QUESTION_CACHE_PREFIX = 'kee_question_cache_v1_';
   const QUESTION_CACHE_DAYS = 30;
@@ -459,10 +459,14 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('closeBoardBtn').onclick = () => toggleBoard(false);
   document.getElementById('rulesMask').onclick = (e) => { if (e.target.id === 'rulesMask') toggleRules(false); };
   document.getElementById('boardMask').onclick = (e) => { if (e.target.id === 'boardMask') toggleBoard(false); };
-  document.getElementById('backToListTop').onclick = () => {
+  function returnFromTopButton(){
+    isQuizActive = false;
+    setLoading(false);
     if (currentMode === 'wrongbook') showWrongBook();
     else showChapterList();
-  };
+  }
+
+  document.getElementById('backToListTop').onclick = returnFromTopButton;
   document.getElementById('backFromFinish').onclick = returnAfterFinish;
   setupThemeButtons();
 
@@ -1872,7 +1876,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (q.hintUsed) return alert('这题已经用过提示。');
     const price = currentMode === 'boss' ? 25 : (currentMode === 'monster' ? 15 : 10);
     if (Number(coinState.coins || 0) < price) return alert(`金币不足，需要 ${price} 金币。`);
-    if (!confirm(`使用提示需要 ${price} 金币，确定使用？`)) return;
+    if (!confirm(`使用提示会扣 ${price} 金币，并显示一个提示。\n\n选择题：隐藏一个错误选项。\n多选题：显示其中一个正确答案。\n填充题：显示答案开头。\n\n每题最多使用 1 次；用了提示后不能 Perfect Kill / Perfect Boss。\n\n确定使用？`)) return;
 
     const r = await spendCoins(price, `使用提示 -${price}`, currentMode === 'boss' ? `Bab ${currentBab} Boss` : currentRow[chapterKey]);
     if (!r || !r.ok) return alert((r && r.error) || '扣金币失败');
@@ -1941,7 +1945,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const fb = document.createElement('div'); fb.className='feedback'; div.appendChild(fb);
     const hintBtn = document.createElement('button');
     hintBtn.className = 'btn ghost small';
-    hintBtn.textContent = currentMode === 'boss' ? '💡 提示 -25' : (currentMode === 'monster' ? '💡 提示 -15' : '💡 提示 -10');
+    const hintPrice = currentMode === 'boss' ? 25 : (currentMode === 'monster' ? 15 : 10);
+    hintBtn.textContent = `💡 看提示 -${hintPrice}金币`;
+    hintBtn.title = `扣 ${hintPrice} 金币显示提示；每题只能使用 1 次。`;
+    hintBtn.setAttribute('aria-label', `看提示，扣 ${hintPrice} 金币`);
     hintBtn.onclick = () => useHintForQuestion(q, div, fb);
     div.appendChild(hintBtn);
     const sb = document.createElement('button'); sb.className='btn'; sb.textContent='提交';
