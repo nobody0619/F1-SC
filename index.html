@@ -405,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const SCRIPT_URL = document.getElementById('postForm').getAttribute('action');
   const STORAGE_KEY = 'kee_quiz_game_auth_v1';
   const TZ = 'Asia/Kuala_Lumpur';
-  const APP_VERSION = '2026.07.04.1';
+  const APP_VERSION = '2026.07.07.1';
   const SKIP_SERVER_LOGIN = false;
   const QUESTION_CACHE_PREFIX = 'kee_question_cache_v1_';
   const QUESTION_CACHE_DAYS = 30;
@@ -1396,6 +1396,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function postWrongBookAction(payload){
     // WrongBook 内容可能很长，所以先用 JSONP 确认；失败才转为本机待补交。
+    if (!payload.wrongSubmitId) {
+      payload = {
+        ...payload,
+        wrongSubmitId: [
+          payload.action || 'addWrong',
+          payload.book || '',
+          payload.name || '',
+          payload.wrongId || '',
+          Date.now(),
+          Math.random().toString(36).slice(2)
+        ].join('|')
+      };
+    }
     const fullPayload = { ...payload, v:APP_VERSION, _:String(Date.now()) };
     const dedupeKey = [fullPayload.action, fullPayload.book, fullPayload.name, fullPayload.wrongId].join('|');
     window.__wrongBookSentAt = window.__wrongBookSentAt || {};
