@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>学生学习报告</title>
+  <style>
+    :root{--bg:#f4f6f8;--panel:#fff;--text:#172033;--muted:#667085;--line:#d9dee7;--blue:#2457c5;--blue-soft:#eef4ff;--green:#087a55;--green-soft:#eaf8f2;--amber:#9a5b00;--amber-soft:#fff7e6;--red:#b42318;--shadow:0 8px 24px rgba(16,24,40,.07)}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;font-size:15px}
+    button,input,textarea{font:inherit}
+    button{cursor:pointer}
+    .hidden{display:none!important}
+    .login-page{min-height:100vh;display:grid;place-items:center;padding:20px}
+    .login-panel{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:26px}
+    h1,h2,h3,p{margin-top:0}
+    h1{font-size:25px;margin-bottom:8px;letter-spacing:0}
+    h2{font-size:20px;letter-spacing:0}
+    h3{font-size:16px;letter-spacing:0}
+    .muted{color:var(--muted)}
+    .field-label{display:block;font-weight:700;margin:20px 0 7px}
+    .input,.search,textarea{width:100%;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--text);padding:11px 12px;outline:none}
+    .input:focus,.search:focus,textarea:focus{border-color:#76a0ef;box-shadow:0 0 0 3px rgba(36,87,197,.12)}
+    .btn{border:1px solid transparent;border-radius:6px;background:var(--blue);color:#fff;font-weight:750;padding:10px 14px;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px}
+    .btn:hover{filter:brightness(.97)}
+    .btn:disabled{cursor:not-allowed;opacity:.5}
+    .btn.secondary{background:#fff;border-color:var(--line);color:var(--text)}
+    .btn.whatsapp{background:#128c5e}
+    .btn.full{width:100%}
+    .status{min-height:22px;margin-top:10px;color:var(--red)}
+    .app{min-height:100vh}
+    .topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+    .topbar-inner{max-width:1380px;margin:auto;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:850;font-size:19px}
+    .brand-mark{width:34px;height:34px;border-radius:6px;background:var(--blue);color:#fff;display:grid;place-items:center}
+    .toolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+    .segmented{display:inline-flex;border:1px solid var(--line);border-radius:7px;padding:3px;background:#f8fafc}
+    .segment{border:0;background:transparent;color:var(--muted);font-weight:750;padding:7px 13px;border-radius:5px}
+    .segment.active{background:#fff;color:var(--blue);box-shadow:0 1px 4px rgba(16,24,40,.12)}
+    .workspace{max-width:1380px;margin:auto;padding:18px;display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px}
+    .sidebar,.detail{background:#fff;border:1px solid var(--line);border-radius:8px;min-width:0}
+    .sidebar-head{padding:16px;border-bottom:1px solid var(--line)}
+    .sidebar-head h2{margin-bottom:12px}
+    .list-meta{font-size:13px;color:var(--muted);margin-top:9px}
+    .student-list{max-height:calc(100vh - 205px);overflow:auto}
+    .student-row{width:100%;border:0;border-bottom:1px solid #edf0f4;background:#fff;text-align:left;padding:13px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
+    .student-row:hover,.student-row.active{background:var(--blue-soft)}
+    .student-row.active{box-shadow:inset 3px 0 var(--blue)}
+    .student-name{display:block;font-weight:800;overflow-wrap:anywhere}
+    .student-phone{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+    .student-metric{text-align:right;font-size:12px;color:var(--muted);white-space:nowrap}
+    .student-metric strong{display:block;color:var(--text);font-size:15px;margin-bottom:3px}
+    .detail{padding:20px}
+    .empty{min-height:420px;display:grid;place-items:center;text-align:center;color:var(--muted);padding:30px}
+    .detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+    .detail-head h2{margin-bottom:5px}
+    .phone-line{color:var(--muted)}
+    .period-note{font-size:13px;color:var(--muted);text-align:right}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
+    .stat{border:1px solid var(--line);border-radius:7px;padding:13px;background:#fff;min-width:0}
+    .stat-label{color:var(--muted);font-size:12px;margin-bottom:6px}
+    .stat-value{font-weight:850;font-size:21px;overflow-wrap:anywhere}
+    .mode-line{display:flex;gap:10px 20px;flex-wrap:wrap;background:#f8fafc;border:1px solid var(--line);border-radius:7px;padding:11px 13px;color:var(--muted)}
+    .mode-line strong{color:var(--text)}
+    .performance{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+    .performance-item{border-left:4px solid var(--green);padding:7px 12px;background:var(--green-soft)}
+    .performance-item.weak{border-left-color:var(--amber);background:var(--amber-soft)}
+    .performance-item .title{font-size:12px;color:var(--muted);margin-bottom:5px}
+    .performance-item .value{font-weight:800;line-height:1.45}
+    .report-section{border-top:1px solid var(--line);padding-top:18px;margin-top:18px}
+    .report-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .report-head h3{font-size:18px;margin:0}
+    textarea{min-height:290px;resize:vertical;line-height:1.65}
+    .report-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:11px}
+    .copy-state{align-self:center;color:var(--green);font-weight:750;min-height:20px}
+    .loading{padding:30px;text-align:center;color:var(--muted)}
+    @media(max-width:960px){.workspace{grid-template-columns:290px minmax(0,1fr)}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:720px){.topbar-inner{align-items:flex-start;flex-direction:column}.toolbar{width:100%;justify-content:space-between}.workspace{grid-template-columns:1fr;padding:10px}.student-list{max-height:310px}.detail{padding:15px}.detail-head{flex-direction:column}.period-note{text-align:left}.performance{grid-template-columns:1fr}.report-actions .btn{width:100%}}
+  </style>
+</head>
+<body>
+  <section id="loginPage" class="login-page">
+    <div class="login-panel">
+      <h1>📊 学生学习报告</h1>
+      <p class="muted">老师后台</p>
+      <label class="field-label" for="teacherPassword">老师密码</label>
+      <input id="teacherPassword" class="input" type="password" autocomplete="current-password" placeholder="请输入老师密码">
+      <button id="loginBtn" class="btn full" type="button" style="margin-top:12px">登入</button>
+      <div id="loginStatus" class="status" role="status"></div>
+    </div>
+  </section>
+
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand"><span class="brand-mark">📊</span><span>学生学习报告</span></div>
+        <div class="toolbar">
+          <div class="segmented" aria-label="报告时间范围">
+            <button class="segment active" data-range="week" type="button">本星期</button>
+            <button class="segment" data-range="month" type="button">本月</button>
+          </div>
+          <button id="refreshBtn" class="btn secondary" type="button">↻ 更新数据</button>
+          <button id="logoutBtn" class="btn secondary" type="button">退出</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="sidebar">
+        <div class="sidebar-head">
+          <h2>学生名单</h2>
+          <input id="searchInput" class="search" type="search" placeholder="搜索学生姓名" autocomplete="off">
+          <div id="listMeta" class="list-meta">正在读取...</div>
+        </div>
+        <div id="studentList" class="student-list"><div class="loading">正在读取学习记录...</div></div>
+      </aside>
+
+      <main id="detail" class="detail">
+        <div class="empty">从左边选择一位学生查看报告。</div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const REPORT_CONFIG = {
+      SCRIPT_URL:'https://script.google.com/macros/s/AKfycbwOadAK74XfAiOFkokD6zlQ8kQZTFDI0_SVWwMSSRgT8mwuoCac2VSAIj8X07L7NVVF/exec',
+      VERSION:'2026.09.14.1'
+    };
+
+    let reportToken = sessionStorage.getItem('teacherReportToken') || '';
+    let rangeType = 'week';
+    let reportData = null;
+    let selectedNameKey = '';
+
+    const loginPage = document.getElementById('loginPage');
+    const app = document.getElementById('app');
+    const loginStatus = document.getElementById('loginStatus');
+    const loginBtn = document.getElementById('loginBtn');
+    const passwordInput = document.getElementById('teacherPassword');
+    const studentList = document.getElementById('studentList');
+    const listMeta = document.getElementById('listMeta');
+    const searchInput = document.getElementById('searchInput');
+    const detail = document.getElementById('detail');
+
+    async function apiFetch(params){
+      const url = new URL(REPORT_CONFIG.SCRIPT_URL);
+      Object.entries({...params,v:REPORT_CONFIG.VERSION,_:Date.now()}).forEach(([key,value]) => url.searchParams.set(key, value == null ? '' : String(value)));
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 45000);
+      try {
+        const response = await fetch(url.toString(), {cache:'no-store',credentials:'omit',signal:controller.signal});
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return await response.json();
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    loginBtn.onclick = login;
+    passwordInput.addEventListener('keydown', event => { if (event.key === 'Enter') login(); });
+    document.getElementById('refreshBtn').onclick = () => loadReport(true);
+    document.getElementById('logoutBtn').onclick = logout;
+    searchInput.addEventListener('input', renderStudentList);
+    document.querySelectorAll('.segment').forEach(button => {
+      button.onclick = () => {
+        if (button.dataset.range === rangeType) return;
+        rangeType = button.dataset.range;
+        document.querySelectorAll('.segment').forEach(item => item.classList.toggle('active', item === button));
+        loadReport(false);
+      };
+    });
+
+    async function login(){
+      const password = passwordInput.value;
+      if (!password) { loginStatus.textContent = '请输入老师密码。'; return; }
+      loginBtn.disabled = true;
+      loginStatus.textContent = '正在登入...';
+      try {
+        const result = await apiFetch({action:'teacherReportLogin',password});
+        if (!result.ok) throw new Error(result.error || '登入失败');
+        reportToken = result.token;
+        sessionStorage.setItem('teacherReportToken', reportToken);
+        passwordInput.value = '';
+        showApp();
+        await loadReport(false);
+      } catch(error) {
+        loginStatus.textContent = friendlyError(error, '登入失败，请检查密码后重试。');
+      } finally {
+        loginBtn.disabled = false;
+      }
+    }
+
+    function logout(){
+      reportToken = '';
+      sessionStorage.removeItem('teacherReportToken');
+      reportData = null;
+      selectedNameKey = '';
+      app.classList.add('hidden');
+      loginPage.classList.remove('hidden');
+      loginStatus.textContent = '';
+      passwordInput.focus();
+    }
+
+    function showApp(){
+      loginPage.classList.add('hidden');
+      app.classList.remove('hidden');
+    }
+
+    async function loadReport(isRefresh){
+      studentList.innerHTML = '<div class="loading">正在统计成绩，请稍等...</div>';
+      listMeta.textContent = isRefresh ? '正在更新...' : '正在读取...';
+      try {
+        const result = await apiFetch({action:'getTeacherReport',token:reportToken,range:rangeType});
+        if (!result.ok) {
+          if (String(result.error || '').includes('登录已失效')) return logout();
+          throw new Error(result.error || '读取失败');
+        }
+        reportData = result;
+        renderStudentList();
+        const selected = findSelectedStudent();
+        if (selected) renderDetail(selected);
+        else detail.innerHTML = '<div class="empty">从左边选择一位学生查看报告。</div>';
+      } catch(error) {
+        listMeta.textContent = '读取失败';
+        studentList.innerHTML = `<div class="empty">${escapeHtml(friendlyError(error, '学习记录读取失败，请稍后重试。'))}</div>`;
+      }
+    }
+
+    function renderStudentList(){
+      if (!reportData) return;
+      const query = normalizeName(searchInput.value);
+      const filtered = reportData.students.filter(student => !query || normalizeName(student.name).includes(query));
+      listMeta.textContent = `${reportData.period.label} ${reportData.period.start} 至 ${reportData.period.end}｜${filtered.length} 位学生`;
+      if (!filtered.length) {
+        studentList.innerHTML = '<div class="empty">没有找到学生。</div>';
+        return;
+      }
+      studentList.innerHTML = '';
+      filtered.forEach(student => {
+        const key = normalizeName(student.name);
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'student-row' + (selectedNameKey === key ? ' active' : '');
+        row.innerHTML = `<span><span class="student-name">${escapeHtml(student.name)}</span><span class="student-phone">${escapeHtml(student.guardianPhone || '家长电话未填写')}</span></span><span class="student-metric"><strong>${student.current.attempts} 份</strong>${formatAccuracy(student.current.accuracy)}</span>`;
+        row.onclick = () => {
+          selectedNameKey = key;
+          renderStudentList();
+          renderDetail(student);
+        };
+        studentList.appendChild(row);
+      });
+    }
+
+    function findSelectedStudent(){
+      return reportData && reportData.students.find(student => normalizeName(student.name) === selectedNameKey);
+    }
+
+    function renderDetail(student){
+      const stats = student.current;
+      const previous = student.previous;
+      const reportText = buildParentReport(student, reportData);
+      detail.innerHTML = `
+        <div class="detail-head">
+          <div><h2>${escapeHtml(student.name)}</h2><div class="phone-line">Guardian Phone (G)：${escapeHtml(student.guardianPhone || '未填写')}</div></div>
+          <div class="period-note">${escapeHtml(reportData.period.label)}：${escapeHtml(reportData.period.start)} 至 ${escapeHtml(reportData.period.end)}<br>${escapeHtml(reportData.comparisonPeriod.label)}：${previous.attempts} 份｜${formatAccuracy(previous.accuracy)}</div>
+        </div>
+        <div class="stats-grid">
+          ${statHtml('练习数量', stats.attempts + ' 份')}
+          ${statHtml('题目数量', stats.questions + ' 题')}
+          ${statHtml('Accuracy', formatAccuracy(stats.accuracy))}
+          ${statHtml('Correct', stats.correct)}
+          ${statHtml('Wrong', stats.wrong)}
+          ${statHtml('练习天数', stats.days + ' 天')}
+          ${statHtml('练习时间', formatDuration(stats.time))}
+          ${statHtml('EXP', '+' + stats.exp)}
+        </div>
+        <div class="mode-line"><span>Practice <strong>${stats.practice}</strong></span><span>Monster <strong>${stats.monster}</strong></span><span>Boss / Ultimate <strong>${stats.bossUltimate}</strong></span><span>科目 <strong>${escapeHtml(stats.books.join('、') || '—')}</strong></span></div>
+        <div class="performance">
+          ${performanceHtml('表现最好', stats.bestQuiz, false)}
+          ${performanceHtml('比较需要加强', stats.weakQuiz, true)}
+        </div>
+        <section class="report-section">
+          <div class="report-head"><h3>💬 家长报告</h3><span class="muted">可以直接修改</span></div>
+          <textarea id="reportText" aria-label="家长报告">${escapeHtml(reportText)}</textarea>
+          <div class="report-actions">
+            <button id="copyBtn" class="btn secondary" type="button">📋 复制报告</button>
+            <button id="whatsappBtn" class="btn whatsapp" type="button" ${student.guardianPhone ? '' : 'disabled'}>🟢 打开家长 WhatsApp</button>
+            <span id="copyState" class="copy-state" role="status"></span>
+          </div>
+        </section>`;
+
+      document.getElementById('copyBtn').onclick = copyReport;
+      document.getElementById('whatsappBtn').onclick = () => openWhatsApp(student.guardianPhone);
+    }
+
+    function statHtml(label, value){
+      return `<div class="stat"><div class="stat-label">${escapeHtml(label)}</div><div class="stat-value">${escapeHtml(value)}</div></div>`;
+    }
+
+    function performanceHtml(title, quiz, weak){
+      const value = quiz ? `${escapeHtml(quiz.label)}｜${quiz.accuracy}%｜${quiz.questions}题` : '资料不足，暂不判断';
+      return `<div class="performance-item${weak ? ' weak' : ''}"><div class="title">${escapeHtml(title)}</div><div class="value">${value}</div></div>`;
+    }
+
+    async function copyReport(){
+      const textarea = document.getElementById('reportText');
+      const state = document.getElementById('copyState');
+      try {
+        await navigator.clipboard.writeText(textarea.value);
+      } catch(error) {
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+      }
+      state.textContent = '✅ 已复制';
+      setTimeout(() => { if (state) state.textContent = ''; }, 2200);
+    }
+
+    function openWhatsApp(phone){
+      const guardianPhone = normalizePhone(phone);
+      if (!guardianPhone) return;
+      const message = document.getElementById('reportText').value;
+      window.open(`https://wa.me/${guardianPhone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener');
+    }
+
+    function buildParentReport(student, data){
+      const current = student.current;
+      const previous = student.previous;
+      const period = data.range === 'month' ? '这个月' : '这个星期';
+      const previousPeriod = data.range === 'month' ? '上个月' : '上星期';
+      const nextPeriod = data.range === 'month' ? '接下来' : '下星期';
+      const lines = [`${student.name} 家长您好 😊`, ''];
+
+      if (!current.attempts) {
+        lines.push(`系统${period}暂时没有收到练习记录，可能是看重播后还没完成线上练习，或${period}没有上课；家长可以顺便和孩子确认一下，有需要的话再补做即可。`);
+        return lines.join('\n');
+      }
+
+      if (current.attempts === 1 && current.accuracy != null) {
+        lines.push(`系统${period}收到1份练习记录，共${current.questions}题，准确率是${current.accuracy}%。记录比较少，可能是看重播后还有练习未完成，也可以顺便和孩子确认一下。`);
+      } else {
+        lines.push(`孩子${period}一共做了${current.attempts}份练习，总共${current.questions}题，整体准确率${formatAccuracy(current.accuracy)}。`);
+        lines.push('', accuracyTone(current.accuracy, period));
+      }
+
+      if (current.days >= 3) {
+        lines.push('', `这些练习分布在${current.days}天完成，练习安排算是蛮规律的。`);
+      } else if (current.bossUltimate > 0) {
+        lines.push('', `其中也完成了${current.bossUltimate}次 Boss / Ultimate 挑战，复习范围比较全面。`);
+      } else if (current.monster > 0) {
+        lines.push('', `其中有${current.monster}次小怪挑战，除了普通练习也有做巩固。`);
+      }
+
+      if (current.bestQuiz) {
+        lines.push('', `${current.bestQuiz.label}表现不错，累计${current.bestQuiz.questions}题，准确率有${current.bestQuiz.accuracy}% 👍`);
+      }
+      if (current.weakQuiz) {
+        lines.push(`比较需要加强的是${current.weakQuiz.label}，目前大概${current.weakQuiz.accuracy}%，这部分可以再多练习一下。`);
+      }
+
+      lines.push('', comparisonSentence(current, previous, period, previousPeriod));
+
+      if (current.attempts <= 2) {
+        lines.push('', `${nextPeriod}可以先把练习量稍微增加一点，不需要一次做很多，稳定练习就会有帮助。`);
+      } else if (current.weakQuiz) {
+        lines.push('', `${nextPeriod}可以继续保持，再加强一下${current.weakQuiz.label}就很好了。`);
+      } else if (current.accuracy != null && current.accuracy < 70) {
+        lines.push('', `${nextPeriod}可以先把做错的部分多练几次，慢慢把基础稳定下来。`);
+      } else {
+        lines.push('', `${nextPeriod}继续保持现在的练习节奏就很好了 👏`);
+      }
+      return lines.join('\n');
+    }
+
+    function accuracyTone(accuracy, period){
+      if (accuracy == null) return `${period}暂时没有可计算准确率的题目。`;
+      if (accuracy >= 90) return `${period}整体掌握得很好，准确率也很稳定 👍`;
+      if (accuracy >= 80) return `${period}整体表现不错，大部分内容都有掌握到。`;
+      if (accuracy >= 70) return '整体基础有掌握到，不过还有一些部分需要再练习。';
+      return `${period}有一些内容还不是很稳定，可以再多做一点相关练习。`;
+    }
+
+    function comparisonSentence(current, previous, period, previousPeriod){
+      if (!previous.attempts) return `${previousPeriod}暂时没有练习记录，这次可以作为之后比较的起点。`;
+      const more = current.attempts > previous.attempts;
+      const less = current.attempts < previous.attempts;
+      const hasAccuracy = current.accuracy != null && previous.accuracy != null;
+      const accuracyUp = hasAccuracy && current.accuracy > previous.accuracy;
+      const accuracyDown = hasAccuracy && current.accuracy < previous.accuracy;
+
+      if (more && accuracyUp) return `${period}做的练习比${previousPeriod}多，准确率也从${previous.accuracy}%进步到${current.accuracy}%，整体有进步 👍`;
+      if (more && !accuracyDown) return `${period}完成的练习从${previous.attempts}份增加到${current.attempts}份，准确率也保持得不错。`;
+      if (accuracyUp) return `${period}准确率从${previous.accuracy}%提升到${current.accuracy}%，掌握度有进步 👍`;
+      if (accuracyDown) return `${period}准确率比${previousPeriod}稍微低一点，从${previous.accuracy}%到${current.accuracy}%，可以再留意一下错题。`;
+      if (less) return `${period}完成了${current.attempts}份练习，比${previousPeriod}少一点，接下来把练习节奏补回来就可以了。`;
+      return `${period}和${previousPeriod}的练习量与准确率都很接近，整体保持稳定。`;
+    }
+
+    function normalizeName(value){ return String(value || '').trim().toLowerCase(); }
+    function normalizePhone(value){
+      let digits = String(value || '').replace(/[^0-9]/g, '');
+      if (!digits) return '';
+      if (digits.startsWith('60')) return digits;
+      if (digits.startsWith('0')) return '60' + digits.slice(1);
+      return digits;
+    }
+    function formatAccuracy(value){ return value == null ? '—' : `${Number(value)}%`; }
+    function formatDuration(seconds){
+      const total = Math.max(0, Math.round(Number(seconds || 0)));
+      const hours = Math.floor(total / 3600);
+      const minutes = Math.floor((total % 3600) / 60);
+      if (hours) return `${hours}小时 ${minutes}分`;
+      if (minutes) return `${minutes}分`;
+      return `${total}秒`;
+    }
+    function escapeHtml(value){ return String(value == null ? '' : value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char])); }
+    function friendlyError(error, fallback){
+      if (error && error.name === 'AbortError') return '读取时间较长，请再试一次。';
+      return error && error.message ? error.message : fallback;
+    }
+
+    if (reportToken) {
+      showApp();
+      loadReport(false);
+    } else {
+      passwordInput.focus();
+    }
+  </script>
+</body>
+</html>
